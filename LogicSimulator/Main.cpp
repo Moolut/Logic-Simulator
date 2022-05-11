@@ -2,31 +2,105 @@
 #include <SFML/Graphics.hpp>
 using namespace std;
 
+
+
+
+class Object {
+
+    Object* next;               //Pointer to next object in the list
+
+    bool locked;                //Whether the object can move on screen or is fixed
+                                //You can use this flag for toolbar items which cannot move
+
+    sf::RenderWindow* window;   //Pointer to SFML render window
+
+    sf::Texture textures[2];    //SFML texture list for the object (if any). Some objects
+                                //such as LED element may have multiple textures(for on
+                                //stateand off state), hence this is a list
+
+    sf::Sprite sprite;          //SFML sprite for the object (if any)
+    bool state;                 //State of the logic element (may be used to designate
+                                //button state, D - flipflop state or whether LED is on or off)
+
+    bool selected;              //Whether the object is selected for deletion
+
+protected:
+    Object() {
+        
+        
+
+    }
+    void SetEditingMode() {}
+    void clickEvent() {}
+
+};
+
+class Wire : Object {
+
+    sf::Vertex line[2];         //End point vertices for the wire
+
+    /*Pin* pins[2];*/               //A list of pins that this wire is connected to
+};
+
+class Pin {
+
+    enum pinType { INPUT, OUTPUT };         //enum for pin type (input or output pin)
+    
+    enum pinState { HIGHZ, LOW, HIGH };      //enum for pin state
+
+    int index;                              //Index of the pin for an element
+                                            //First input pin has index 0, second input
+                                            //pin has index 1, output pin has index 2, so
+                                            //on…
+
+    pinType type;                           //whether this pin is input or output
+    
+    bool isSrc[3];            //whether this pin is the starting point of
+                                            //the wire connected to it or the ending point
+                                            //for that wire for every connection it has
+
+    Pin* connectedTo[3];      //List of other pins this pin is connected to
+
+    Object* wires[3];         //Wires connected to this pin
+
+    int numConnections;                     //Number of connections on this pin
+    
+    sf::Vector2f pos;                       //Screen position of the pin
+    
+    pinState state;                         //Logic state of the signal on this pin
+};
+
+
+class LogicElement : public Object {
+        
+    Pin pins[4];                            //List of pins of the logic element
+
+    int numPins;                            //Number of pins of the logic element
+
+protected:
+    LogicElement() {}
+};
+
+
+class AndGate : public LogicElement {
+
+private:
+    AndGate(){
+        
+    }
+
+};
+
+class Simulator {
+
+    sf::RenderWindow* window;               //Pointer to SFML render window
+    Object* objects;                        //Pointer to a list of objects on screen
+
+};
+
+
 int main()
 {
-    sf::Texture andGate,led;
-    if (!andGate.loadFromFile("../assets/AND.png"))
-    {
-        cout << "Failed to load texture!" << endl;
-        return -1;
-    }
-
-    sf::Sprite spriteAND,spriteLED;
-    spriteAND.setTexture(andGate);
-    spriteAND.setColor(sf::Color(0, 255, 0));
-    spriteAND.setRotation(90.f); // absolute anglea
-    spriteAND.setPosition(sf::Vector2f(400.f, 300.f)); // absolute position
-    spriteAND.setScale(sf::Vector2f(4.f, 4.f)); // absolute scale factor
-
-    if (!led.loadFromFile("../assets/LEDON.png"))
-    {
-        cout << "Failed to load texture!" << endl;
-        return -1;
-    }
-    //Test
-    spriteLED.setTexture(led);
-    spriteLED.setScale(sf::Vector2f(2.f, 2.f)); // absolute scale factor
-
 
     // create the window
     sf::RenderWindow window(sf::VideoMode(800, 600), "Logic Simulator");
@@ -42,40 +116,15 @@ int main()
             if (event.type == sf::Event::Closed)
                 window.close();
 
-            if (event.type == sf::Event::MouseButtonPressed)
-            {
-                if (event.mouseButton.button == sf::Mouse::Left)
-                {
-                    std::cout << "the right button was pressed" << std::endl;
-                    std::cout << "mouse x: " << event.mouseButton.x << std::endl;
-                    std::cout << "mouse y: " << event.mouseButton.y << std::endl;
 
-                    std::cout << "LED GLOBAL BOUNDS: " << spriteLED.getGlobalBounds().contains(sf::Vector2f(event.mouseButton.x, event.mouseButton.y)) << std::endl;
-                }
-            }
-
-            if (event.type == sf::Event::MouseButtonReleased)
-            {
-                if (event.mouseButton.button == sf::Mouse::Left)
-                {
-                    std::cout << "the right button was released" << std::endl;
-                    std::cout << "mouse x: " << event.mouseButton.x << std::endl;
-                    std::cout << "mouse y: " << event.mouseButton.y << std::endl;
-
-                    spriteLED.setPosition(event.mouseButton.x, event.mouseButton.y);
-
-                }
-            }
         }
 
         window.clear(sf::Color::Black);
 
         // draw everything here...
-        window.draw(spriteAND);
-        window.draw(spriteLED);
 
         // end the current frame
         window.display();
     }
     return 0;
-}
+};
