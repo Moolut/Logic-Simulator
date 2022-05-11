@@ -23,7 +23,7 @@ int main()
         cout << "Failed to load texture!" << endl;
         return -1;
     }
-
+    //Test
     spriteLED.setTexture(led);
     spriteLED.setScale(sf::Vector2f(2.f, 2.f)); // absolute scale factor
 
