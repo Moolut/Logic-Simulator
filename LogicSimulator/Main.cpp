@@ -14,7 +14,7 @@ int main()
     sf::Sprite spriteAND,spriteLED;
     spriteAND.setTexture(andGate);
     spriteAND.setColor(sf::Color(0, 255, 0));
-    spriteAND.setRotation(90.f); // absolute angle
+    spriteAND.setRotation(90.f); // absolute anglea
     spriteAND.setPosition(sf::Vector2f(400.f, 300.f)); // absolute position
     spriteAND.setScale(sf::Vector2f(4.f, 4.f)); // absolute scale factor
 
