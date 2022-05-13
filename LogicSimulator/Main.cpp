@@ -7,6 +7,7 @@ using namespace std;
 
 class Object {
 
+protected:
     Object* next;               //Pointer to next object in the list
 
     bool locked;                //Whether the object can move on screen or is fixed
@@ -24,14 +25,25 @@ class Object {
 
     bool selected;              //Whether the object is selected for deletion
 
-protected:
+public:
+    friend class Simulator;
     Object() {
+       
+    }
+    ~Object() {
         
-        
+        delete this->next;
+        delete this->window;
 
     }
-    void SetEditingMode() {}
-    void clickEvent() {}
+
+
+    void onClick() {
+      
+
+    }
+
+
 
 };
 
@@ -39,7 +51,7 @@ class Wire : Object {
 
     sf::Vertex line[2];         //End point vertices for the wire
 
-    /*Pin* pins[2];*/               //A list of pins that this wire is connected to
+    /*Pin* pins[2]; */              //A list of pins that this wire is connected to
 };
 
 class Pin {
@@ -77,24 +89,193 @@ class LogicElement : public Object {
 
     int numPins;                            //Number of pins of the logic element
 
-protected:
+
+public:
     LogicElement() {}
 };
 
 
 class AndGate : public LogicElement {
-
-private:
-    AndGate(){
+    
+    
+public:
+    AndGate() {
+            
+        this->next = NULL;
         
+        if (!this->textures[0].loadFromFile("../assets/AND.png"))
+            exit(0);
+        this->sprite.setTexture(this->textures[0]);
+
+
+    }
+
+    ~AndGate() {
     }
 
 };
 
+
+class OrGate : public LogicElement {
+
+
+public:
+    OrGate() {
+
+        this->next = NULL;
+
+        if (!this->textures[0].loadFromFile("../assets/OR.png"))
+            exit(0);
+        this->sprite.setTexture(this->textures[0]);
+
+
+    }
+
+    ~OrGate() {
+    }
+
+};
+
+
+class XorGate : public LogicElement {
+
+
+public:
+    XorGate() {
+
+        this->next = NULL;
+
+        if (!this->textures[0].loadFromFile("../assets/XOR.png"))
+            exit(0);
+        this->sprite.setTexture(this->textures[0]);
+
+
+    }
+
+    ~XorGate() {
+    }
+
+};
+
+
+
 class Simulator {
 
     sf::RenderWindow* window;               //Pointer to SFML render window
+    sf::VideoMode videoMode;
     Object* objects;                        //Pointer to a list of objects on screen
+    sf::Event event;
+private:
+    void initVariables() {
+
+        this->window = nullptr;
+        this->objects = nullptr;
+
+    }
+    void initWindow() {
+        
+        this->videoMode.height = 1800;
+        this->videoMode.width = 2400;
+
+        this->window = new sf::RenderWindow(this->videoMode, "Logic Simulator", sf::Style::Titlebar | sf::Style::Close);
+    }
+    
+
+public:
+
+    Simulator() {
+        this->initVariables();
+        this->initWindow();
+        
+    }
+
+    ~Simulator() {
+        
+        delete this->window;
+        delete this->objects;
+    }
+
+    const bool isRunning() const {
+        
+        return this->window->isOpen();
+    }
+
+    void pollEvents() {
+    
+        while (this->window->pollEvent(this->event))
+        {
+
+            switch (this->event.type)
+            {
+                case sf::Event::Closed:
+                    this->window->close();
+                    break;
+                case sf::Event::KeyPressed:
+                    if (this->event.key.code == sf::Keyboard::Escape)
+                        this->window->close();
+                    break;
+                default:
+                    break;
+            }
+            // "close requested" event: we close the window
+            if (this->event.type == sf::Event::Closed)
+                this->window->close();
+
+
+        }
+    }
+
+    void update() {
+        
+        this->pollEvents();
+
+        cout << "Mouse position-> x: " << sf::Mouse::getPosition(*this->window).x << " y: " << sf::Mouse::getPosition(*this->window).y << endl;
+    }
+
+    void render() {
+        
+        this->window->clear(sf::Color::Black);
+
+        Object* _toolbar_and = new AndGate();
+        Object* _toolbar_or = new OrGate();
+        Object* _toolbar_xor = new XorGate();
+
+
+        _toolbar_and->sprite.setPosition(sf::Vector2f(40.f, 40.f));
+        _toolbar_or->sprite.setPosition(sf::Vector2f(40.f, 140.f));
+        _toolbar_xor->sprite.setPosition(sf::Vector2f(40.f, 240.f));
+        
+        this->window->draw(_toolbar_and->sprite);
+        this->window->draw(_toolbar_or->sprite);
+        this->window->draw(_toolbar_xor->sprite);
+
+        /*AddObject(_toolbar_and);
+        AddObject(_toolbar_or);
+        drawElements();*/
+
+        this->window->display();
+    }
+
+    void AddObject(Object *obj) {
+            
+        obj->next = objects;
+        objects = obj;
+    }
+
+
+    void drawElements() {
+        
+        Object* ptr = objects;
+
+        if (objects == NULL)
+            cout << "There is no object" << endl;
+
+        while (ptr) {
+            
+            this->window->draw(ptr->sprite);
+            ptr = ptr->next;
+        }
+    }
 
 };
 
@@ -102,29 +283,19 @@ class Simulator {
 int main()
 {
 
-    // create the window
-    sf::RenderWindow window(sf::VideoMode(800, 600), "Logic Simulator");
+
+    // Initialize Simulator
+
+    Simulator simulator;
 
     // run the program as long as the window is open
-    while (window.isOpen())
+    while (simulator.isRunning())
     {
         // check all the window's events that were triggered since the last iteration of the loop
-        sf::Event event;
-        while (window.pollEvent(event))
-        {
-            // "close requested" event: we close the window
-            if (event.type == sf::Event::Closed)
-                window.close();
+        simulator.update();
 
+        simulator.render();
 
-        }
-
-        window.clear(sf::Color::Black);
-
-        // draw everything here...
-
-        // end the current frame
-        window.display();
     }
     return 0;
 };
