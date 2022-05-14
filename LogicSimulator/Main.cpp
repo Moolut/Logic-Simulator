@@ -10,7 +10,7 @@ class Object {
 protected:
     Object* next;               //Pointer to next object in the list
 
-    bool locked;                //Whether the object can move on screen or is fixed
+                    //Whether the object can move on screen or is fixed
                                 //You can use this flag for toolbar items which cannot move
 
     sf::RenderWindow* window;   //Pointer to SFML render window
@@ -19,13 +19,15 @@ protected:
                                 //such as LED element may have multiple textures(for on
                                 //stateand off state), hence this is a list
 
-    sf::Sprite sprite;          //SFML sprite for the object (if any)
+              //SFML sprite for the object (if any)
     bool state;                 //State of the logic element (may be used to designate
                                 //button state, D - flipflop state or whether LED is on or off)
 
     bool selected;              //Whether the object is selected for deletion
 
 public:
+    bool locked;
+    sf::Sprite sprite;
     friend class Simulator;
     Object() {
        
@@ -36,6 +38,20 @@ public:
         delete this->window;
 
     }
+    Object(const Object& old_obj) {
+
+        cout << "Copy constructor " << endl;
+        this->next = old_obj.next;
+        this->locked = false;
+        this->window = old_obj.window;
+        this->textures[0] = old_obj.textures[0];
+        this->textures[1] = old_obj.textures[1];
+        this->sprite = old_obj.sprite;
+        this->sprite.setPosition(sf::Vector2f(100.f, 200.f));
+        this->state = old_obj.state;
+        this->selected = old_obj.selected;
+    }
+    virtual Object* Clone() const = 0;
 
 
     void onClick() {
@@ -113,6 +129,8 @@ public:
     ~AndGate() {
     }
 
+    Object* Clone() const { return new AndGate(*this); }
+
 };
 
 
@@ -133,6 +151,8 @@ public:
 
     ~OrGate() {
     }
+    Object* Clone() const { return new OrGate(*this); }
+
 
 };
 
@@ -154,6 +174,8 @@ public:
 
     ~XorGate() {
     }
+    Object* Clone() const { return new XorGate(*this); }
+
 
 };
 
@@ -165,17 +187,22 @@ class Simulator {
     sf::VideoMode videoMode;
     Object* objects;                        //Pointer to a list of objects on screen
     sf::Event event;
+    bool clicked = false;
+    bool holding = false;
+    sf::Sprite* focus;
+
 private:
     void initVariables() {
 
         this->window = nullptr;
         this->objects = nullptr;
+        this->focus = nullptr;
 
     }
     void initWindow() {
         
-        this->videoMode.height = 1800;
-        this->videoMode.width = 2400;
+        this->videoMode.height = 600;
+        this->videoMode.width = 800;
 
         this->window = new sf::RenderWindow(this->videoMode, "Logic Simulator", sf::Style::Titlebar | sf::Style::Close);
     }
@@ -202,6 +229,12 @@ public:
 
     void pollEvents() {
     
+        bool creating = false;
+        bool moving = false;
+        bool clicking = false;
+        bool dragging = false;
+
+        sf::Vector2i mousePos;
 
 
         while (this->window->pollEvent(this->event))
@@ -216,29 +249,16 @@ public:
                     if (this->event.key.code == sf::Keyboard::Escape)
                         this->window->close();
                     break;
+                case sf::Event::MouseMoved:
+                    mousePos = sf::Vector2i(event.mouseMove.x, event.mouseMove.y);
+                    moving = true;
+                    break;
                 case sf::Event::MouseButtonPressed:
 
                     if (event.mouseButton.button == sf::Mouse::Left)
                     {
-                        Object* ptr = this->objects;
-
-                        if (this->objects == NULL)
-                            cout << "There is no object" << endl;
-
-                        while (ptr) {
-
-                            if (ptr->sprite.getGlobalBounds().contains(sf::Vector2f(event.mouseButton.x, event.mouseButton.y))) {
-                                cout << "Clicked on obj" << endl;
-
-                                break;
-                            }
-                            else {
-                                cout << "Not Clicked on obj" << endl;
-
-                            }
-                            ptr = ptr->next;
-
-                        }
+                        this->clicked = clicking = true;
+                        mousePos = sf::Vector2i(event.mouseButton.x, event.mouseButton.y);
 
                        /* std::cout << "the left button was pressed" << std::endl;
                         std::cout << "mouse x: " << event.mouseButton.x << std::endl;
@@ -250,10 +270,12 @@ public:
                 case sf::Event::MouseButtonReleased:
                     if (event.mouseButton.button == sf::Mouse::Left)
                     {
+                        this->clicked = clicking = false;
                         /*std::cout << "the left button was pressed" << std::endl;
                         std::cout << "mouse x: " << event.mouseButton.x << std::endl;
                         std::cout << "mouse y: " << event.mouseButton.y << std::endl;*/
                     }
+                    mousePos = sf::Vector2i(event.mouseButton.x, event.mouseButton.y);
                     break;
                 default:
                     break;
@@ -264,6 +286,49 @@ public:
 
 
         }
+        this->holding = clicked && (this->focus != nullptr);
+        dragging = (this->holding && moving);
+
+        if (clicking)
+        {
+            Object* ptr = this->objects;
+
+            if (this->objects == NULL)
+                cout << "There is no object" << endl;
+
+            while (ptr) {
+
+                if (ptr->sprite.getGlobalBounds().contains(sf::Vector2f(event.mouseButton.x, event.mouseButton.y))) {
+                    cout << "Clicked on obj" << endl;
+                    if (ptr->locked) {
+                        Object* new_obj = ptr->Clone();
+
+                        AddObject(new_obj);
+                    }
+                    else {
+                        this->focus = &(ptr->sprite);
+                        std::clog << this->focus << std::endl;
+                    }
+
+                    break;
+                }
+                else {
+                    cout << "Not Clicked on obj" << endl;
+
+                }
+                ptr = ptr->next;
+
+            }
+        }
+        else
+            if (dragging)
+            {
+                focus->setPosition(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y));
+            }
+            else if (!holding)
+                focus = nullptr; //I'm not doing anything so I can assume there's no sprite being focused
+
+
     }
 
     void update() {
@@ -277,25 +342,7 @@ public:
         
         this->window->clear(sf::Color::Black);
 
-        Object* _toolbar_and = new AndGate();
-        Object* _toolbar_or = new OrGate();
-        Object* _toolbar_xor = new XorGate();
 
-
-        _toolbar_and->sprite.setPosition(sf::Vector2f(40.f, 40.f));
-        _toolbar_and->locked = true;
-        _toolbar_or->sprite.setPosition(sf::Vector2f(40.f, 140.f));
-        _toolbar_or->locked = true;
-        _toolbar_xor->sprite.setPosition(sf::Vector2f(40.f, 240.f));
-        _toolbar_xor->locked = true;
-        
-        /*this->window->draw(_toolbar_and->sprite);
-        this->window->draw(_toolbar_or->sprite);
-        this->window->draw(_toolbar_xor->sprite);*/
-
-        AddObject(_toolbar_and);
-        AddObject(_toolbar_or);
-        AddObject(_toolbar_xor);
         drawElements();
 
         this->window->display();
@@ -332,6 +379,25 @@ int main()
     // Initialize Simulator
 
     Simulator simulator;
+    Object* _toolbar_and = new AndGate();
+    Object* _toolbar_or = new OrGate();
+    Object* _toolbar_xor = new XorGate();
+
+
+    _toolbar_and->sprite.setPosition(sf::Vector2f(40.f, 40.f));
+    _toolbar_and->locked = true;
+    _toolbar_or->sprite.setPosition(sf::Vector2f(40.f, 140.f));
+    _toolbar_or->locked = true;
+    _toolbar_xor->sprite.setPosition(sf::Vector2f(40.f, 240.f));
+    _toolbar_xor->locked = true;
+
+    /*this->window->draw(_toolbar_and->sprite);
+    this->window->draw(_toolbar_or->sprite);
+    this->window->draw(_toolbar_xor->sprite);*/
+
+    simulator.AddObject(_toolbar_and);
+    simulator.AddObject(_toolbar_or);
+    simulator.AddObject(_toolbar_xor);
 
     // run the program as long as the window is open
     while (simulator.isRunning())
