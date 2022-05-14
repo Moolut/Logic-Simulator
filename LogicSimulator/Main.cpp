@@ -40,7 +40,7 @@ public:
 
     void onClick() {
       
-
+        
     }
 
 
@@ -202,6 +202,8 @@ public:
 
     void pollEvents() {
     
+
+
         while (this->window->pollEvent(this->event))
         {
 
@@ -213,6 +215,45 @@ public:
                 case sf::Event::KeyPressed:
                     if (this->event.key.code == sf::Keyboard::Escape)
                         this->window->close();
+                    break;
+                case sf::Event::MouseButtonPressed:
+
+                    if (event.mouseButton.button == sf::Mouse::Left)
+                    {
+                        Object* ptr = this->objects;
+
+                        if (this->objects == NULL)
+                            cout << "There is no object" << endl;
+
+                        while (ptr) {
+
+                            if (ptr->sprite.getGlobalBounds().contains(sf::Vector2f(event.mouseButton.x, event.mouseButton.y))) {
+                                cout << "Clicked on obj" << endl;
+
+                                break;
+                            }
+                            else {
+                                cout << "Not Clicked on obj" << endl;
+
+                            }
+                            ptr = ptr->next;
+
+                        }
+
+                       /* std::cout << "the left button was pressed" << std::endl;
+                        std::cout << "mouse x: " << event.mouseButton.x << std::endl;
+                        std::cout << "mouse y: " << event.mouseButton.y << std::endl;*/
+                    }
+                    
+
+                    break;
+                case sf::Event::MouseButtonReleased:
+                    if (event.mouseButton.button == sf::Mouse::Left)
+                    {
+                        /*std::cout << "the left button was pressed" << std::endl;
+                        std::cout << "mouse x: " << event.mouseButton.x << std::endl;
+                        std::cout << "mouse y: " << event.mouseButton.y << std::endl;*/
+                    }
                     break;
                 default:
                     break;
@@ -229,7 +270,7 @@ public:
         
         this->pollEvents();
 
-        cout << "Mouse position-> x: " << sf::Mouse::getPosition(*this->window).x << " y: " << sf::Mouse::getPosition(*this->window).y << endl;
+        //cout << "Mouse position-> x: " << sf::Mouse::getPosition(*this->window).x << " y: " << sf::Mouse::getPosition(*this->window).y << endl;
     }
 
     void render() {
@@ -242,16 +283,20 @@ public:
 
 
         _toolbar_and->sprite.setPosition(sf::Vector2f(40.f, 40.f));
+        _toolbar_and->locked = true;
         _toolbar_or->sprite.setPosition(sf::Vector2f(40.f, 140.f));
+        _toolbar_or->locked = true;
         _toolbar_xor->sprite.setPosition(sf::Vector2f(40.f, 240.f));
+        _toolbar_xor->locked = true;
         
-        this->window->draw(_toolbar_and->sprite);
+        /*this->window->draw(_toolbar_and->sprite);
         this->window->draw(_toolbar_or->sprite);
-        this->window->draw(_toolbar_xor->sprite);
+        this->window->draw(_toolbar_xor->sprite);*/
 
-        /*AddObject(_toolbar_and);
+        AddObject(_toolbar_and);
         AddObject(_toolbar_or);
-        drawElements();*/
+        AddObject(_toolbar_xor);
+        drawElements();
 
         this->window->display();
     }
