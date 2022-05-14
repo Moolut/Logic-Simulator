@@ -47,7 +47,6 @@ public:
         this->textures[0] = old_obj.textures[0];
         this->textures[1] = old_obj.textures[1];
         this->sprite = old_obj.sprite;
-        this->sprite.setPosition(sf::Vector2f(100.f, 200.f));
         this->state = old_obj.state;
         this->selected = old_obj.selected;
     }
@@ -304,6 +303,7 @@ public:
                         Object* new_obj = ptr->Clone();
 
                         AddObject(new_obj);
+                        this->focus = &(new_obj->sprite);
                     }
                     else {
                         this->focus = &(ptr->sprite);
@@ -323,7 +323,7 @@ public:
         else
             if (dragging)
             {
-                focus->setPosition(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y));
+                focus->setPosition(static_cast<float>(mousePos.x) - focus->getGlobalBounds().width / 2, static_cast<float>(mousePos.y) - focus->getGlobalBounds().height / 2);
             }
             else if (!holding)
                 focus = nullptr; //I'm not doing anything so I can assume there's no sprite being focused
