@@ -160,13 +160,13 @@ public:
         this->pins[1] = * new Pin (
             1,
             Pin::pinType::INPUT,
-            sf::Vector2f(this->sprite.getPosition().x + 10.f, this->sprite.getPosition().y + 35.f),
+            sf::Vector2f(this->sprite.getPosition().x + 10.f, this->sprite.getPosition().y + 45.f),
             Pin::pinState::HIGHZ
         );;
         this->pins[2] = * new Pin (
             2,
             Pin::pinType::OUTPUT,
-            sf::Vector2f(this->sprite.getPosition().x + 40.f, this->sprite.getPosition().y + 20.f),
+            sf::Vector2f(this->sprite.getPosition().x + 90.f, this->sprite.getPosition().y + 30.f),
             Pin::pinState::HIGHZ
         );;
         
@@ -189,7 +189,6 @@ public:
 
     Pin* GetPins() {
         
-
         return this->pins;
     }
 
@@ -199,8 +198,8 @@ public:
 
     void UpdatePosition() {
         this->pins[0].pos = sf::Vector2f(this->sprite.getPosition().x + 10.f, this->sprite.getPosition().y + 15.f);
-        this->pins[1].pos = sf::Vector2f(this->sprite.getPosition().x + 10.f, this->sprite.getPosition().y + 35.f);
-        this->pins[2].pos = sf::Vector2f(this->sprite.getPosition().x + 40.f, this->sprite.getPosition().y + 20.f);
+        this->pins[1].pos = sf::Vector2f(this->sprite.getPosition().x + 10.f, this->sprite.getPosition().y + 45.f);
+        this->pins[2].pos = sf::Vector2f(this->sprite.getPosition().x + 90.f, this->sprite.getPosition().y + 30.f);
     }
 };
 
@@ -212,37 +211,34 @@ public:
     OrGate() {
 
         this->next = NULL;
-        this->numPins = 2;
+        this->numPins = 3;
         this->objectType = O_OR;
+
+
+        this->pins[0] = *new Pin(
+            0,
+            Pin::pinType::INPUT,
+            sf::Vector2f(this->sprite.getPosition().x + 10.f, this->sprite.getPosition().y + 15.f),
+            Pin::pinState::HIGHZ
+        );
+        this->pins[1] = *new Pin(
+            1,
+            Pin::pinType::INPUT,
+            sf::Vector2f(this->sprite.getPosition().x + 10.f, this->sprite.getPosition().y + 45.f),
+            Pin::pinState::HIGHZ
+        );;
+        this->pins[2] = *new Pin(
+            2,
+            Pin::pinType::OUTPUT,
+            sf::Vector2f(this->sprite.getPosition().x + 90.f, this->sprite.getPosition().y + 30.f),
+            Pin::pinState::HIGHZ
+        );;
+
 
 
         if (!this->textures[0].loadFromFile("../assets/OR.png"))
             exit(0);
         this->sprite.setTexture(this->textures[0]);
-
-
-        Pin input_0(
-            0,
-            Pin::pinType::INPUT,
-            sf::Vector2f(this->sprite.getPosition().x + 10.f, this->sprite.getPosition().y + 10.f),
-            Pin::pinState::HIGHZ
-        );
-        Pin input_1(
-            1,
-            Pin::pinType::INPUT,
-            sf::Vector2f(this->sprite.getPosition().x + 10.f, this->sprite.getPosition().y + 40.f),
-            Pin::pinState::HIGHZ
-        );
-        Pin output_0(
-            2,
-            Pin::pinType::OUTPUT,
-            sf::Vector2f(this->sprite.getPosition().x + 40.f, this->sprite.getPosition().y + 25.f),
-            Pin::pinState::HIGHZ
-        );
-
-        this->pins[0] = input_0;
-        this->pins[1] = input_1;
-        this->pins[2] = output_0;
 
     }
 
@@ -257,18 +253,16 @@ public:
 
     Pin* GetPins() {
 
-        Pin return_pins[4]{ this->pins[0],this->pins[1], this->pins[2], this->pins[3] };
-
-        return return_pins;
+        return this->pins;
     }
     int GetNumOfPins() {
         return this->numPins;
     }
 
     void UpdatePosition() {
-        this->pins[0].pos = sf::Vector2f(this->sprite.getPosition().x + 10.f, this->sprite.getPosition().y + 10.f);
-        this->pins[1].pos = sf::Vector2f(this->sprite.getPosition().x + 10.f, this->sprite.getPosition().y + 40.f);
-        this->pins[2].pos = sf::Vector2f(this->sprite.getPosition().x + 40.f, this->sprite.getPosition().y + 25.f);
+        this->pins[0].pos = sf::Vector2f(this->sprite.getPosition().x + 10.f, this->sprite.getPosition().y + 15.f);
+        this->pins[1].pos = sf::Vector2f(this->sprite.getPosition().x + 10.f, this->sprite.getPosition().y + 45.f);
+        this->pins[2].pos = sf::Vector2f(this->sprite.getPosition().x + 90.f, this->sprite.getPosition().y + 30.f);
     }
 
 };
@@ -289,28 +283,25 @@ public:
 
         this->numPins = 3;
 
-        Pin input_0(
+        this->pins[0] = *new Pin(
             0,
             Pin::pinType::INPUT,
-            sf::Vector2f(this->sprite.getPosition().x + 10.f, this->sprite.getPosition().y + 10.f),
+            sf::Vector2f(this->sprite.getPosition().x + 10.f, this->sprite.getPosition().y + 15.f),
             Pin::pinState::HIGHZ
         );
-        Pin input_1(
+        this->pins[1] = *new Pin(
             1,
             Pin::pinType::INPUT,
-            sf::Vector2f(this->sprite.getPosition().x + 10.f, this->sprite.getPosition().y + 40.f),
+            sf::Vector2f(this->sprite.getPosition().x + 10.f, this->sprite.getPosition().y + 45.f),
             Pin::pinState::HIGHZ
-        );
-        Pin output_0(
+        );;
+        this->pins[2] = *new Pin(
             2,
             Pin::pinType::OUTPUT,
-            sf::Vector2f(this->sprite.getPosition().x + 40.f, this->sprite.getPosition().y + 25.f),
+            sf::Vector2f(this->sprite.getPosition().x + 90.f, this->sprite.getPosition().y + 30.f),
             Pin::pinState::HIGHZ
-        );
+        );;
 
-        this->pins[0] = input_0;
-        this->pins[1] = input_1;
-        this->pins[2] = output_0;
     }
 
     ~XorGate() {
@@ -324,9 +315,7 @@ public:
 
      Pin* GetPins() {
 
-         Pin return_pins[4]{ this->pins[0],this->pins[1], this->pins[2], this->pins[3] };
-
-         return return_pins;
+         return this->pins;
      }
 
      int GetNumOfPins() {
@@ -334,9 +323,9 @@ public:
      }
 
      void UpdatePosition() {
-         this->pins[0].pos = sf::Vector2f(this->sprite.getPosition().x + 10.f, this->sprite.getPosition().y + 10.f);
-         this->pins[1].pos = sf::Vector2f(this->sprite.getPosition().x + 10.f, this->sprite.getPosition().y + 40.f);
-         this->pins[2].pos = sf::Vector2f(this->sprite.getPosition().x + 40.f, this->sprite.getPosition().y + 25.f);
+         this->pins[0].pos = sf::Vector2f(this->sprite.getPosition().x + 10.f, this->sprite.getPosition().y + 15.f);
+         this->pins[1].pos = sf::Vector2f(this->sprite.getPosition().x + 10.f, this->sprite.getPosition().y + 45.f);
+         this->pins[2].pos = sf::Vector2f(this->sprite.getPosition().x + 90.f, this->sprite.getPosition().y + 30.f);
      }
 };
 
@@ -492,6 +481,7 @@ public:
                                 break;
                         }
                         cout << "MOUSE POSITION x: " << event.mouseButton.x << " y: " << event.mouseButton.y << endl;
+
                         for (int i = 0; i < numOfPins; i++) {
 
                             cout << "PIN " << pins[i].index <<   " LOCATION x: " <<  pins[i].pos.x << " y: " << pins[i].pos.y << endl;
@@ -503,7 +493,7 @@ public:
                             float pin_y_min = pins[i].pos.y - 10.f;
 
                             if (
-                                (event.mouseButton.x <= pin_x_max && event.mouseButton.y >= pin_x_min)
+                                (event.mouseButton.x <= pin_x_max && event.mouseButton.x >= pin_x_min)
                                 &&
                                 (event.mouseButton.y <= pin_y_max && event.mouseButton.y >= pin_y_min)) 
                             {
