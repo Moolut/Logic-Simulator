@@ -133,7 +133,7 @@ public:
     LogicElement() {}
 
 
-
+    virtual void UpdatePosition() = 0;
 };
 
 
@@ -143,6 +143,7 @@ class AndGate : public LogicElement {
 public:
     AndGate() {
             
+        cout << "AND GATE CONSTRUCTOR " << endl;
         this->next = NULL;
         this->numPins = 3;
         this->objectType = O_AND;
@@ -153,19 +154,19 @@ public:
         this->pins[0] = *new Pin (
             0,
             Pin::pinType::INPUT,
-            sf::Vector2f(this->sprite.getPosition().x + 10.f, this->sprite.getPosition().y + 10.f),
+            sf::Vector2f(this->sprite.getPosition().x + 10.f, this->sprite.getPosition().y + 15.f),
             Pin::pinState::HIGHZ
         ); 
         this->pins[1] = * new Pin (
             1,
             Pin::pinType::INPUT,
-            sf::Vector2f(this->sprite.getPosition().x + 10.f, this->sprite.getPosition().y + 40.f),
+            sf::Vector2f(this->sprite.getPosition().x + 10.f, this->sprite.getPosition().y + 35.f),
             Pin::pinState::HIGHZ
         );;
         this->pins[2] = * new Pin (
             2,
             Pin::pinType::OUTPUT,
-            sf::Vector2f(this->sprite.getPosition().x + 40.f, this->sprite.getPosition().y + 25.f),
+            sf::Vector2f(this->sprite.getPosition().x + 40.f, this->sprite.getPosition().y + 20.f),
             Pin::pinState::HIGHZ
         );;
         
@@ -194,6 +195,12 @@ public:
 
     int GetNumOfPins() {
         return this->numPins;
+    }
+
+    void UpdatePosition() {
+        this->pins[0].pos = sf::Vector2f(this->sprite.getPosition().x + 10.f, this->sprite.getPosition().y + 15.f);
+        this->pins[1].pos = sf::Vector2f(this->sprite.getPosition().x + 10.f, this->sprite.getPosition().y + 35.f);
+        this->pins[2].pos = sf::Vector2f(this->sprite.getPosition().x + 40.f, this->sprite.getPosition().y + 20.f);
     }
 };
 
@@ -258,6 +265,12 @@ public:
         return this->numPins;
     }
 
+    void UpdatePosition() {
+        this->pins[0].pos = sf::Vector2f(this->sprite.getPosition().x + 10.f, this->sprite.getPosition().y + 10.f);
+        this->pins[1].pos = sf::Vector2f(this->sprite.getPosition().x + 10.f, this->sprite.getPosition().y + 40.f);
+        this->pins[2].pos = sf::Vector2f(this->sprite.getPosition().x + 40.f, this->sprite.getPosition().y + 25.f);
+    }
+
 };
 
 
@@ -318,6 +331,12 @@ public:
 
      int GetNumOfPins() {
          return this->numPins;
+     }
+
+     void UpdatePosition() {
+         this->pins[0].pos = sf::Vector2f(this->sprite.getPosition().x + 10.f, this->sprite.getPosition().y + 10.f);
+         this->pins[1].pos = sf::Vector2f(this->sprite.getPosition().x + 10.f, this->sprite.getPosition().y + 40.f);
+         this->pins[2].pos = sf::Vector2f(this->sprite.getPosition().x + 40.f, this->sprite.getPosition().y + 25.f);
      }
 };
 
@@ -472,9 +491,29 @@ public:
                             default:
                                 break;
                         }
+                        cout << "MOUSE POSITION x: " << event.mouseButton.x << " y: " << event.mouseButton.y << endl;
                         for (int i = 0; i < numOfPins; i++) {
+
+                            cout << "PIN " << pins[i].index <<   " LOCATION x: " <<  pins[i].pos.x << " y: " << pins[i].pos.y << endl;
                             
-                            cout << "PIN TYPE" <<  pins[i].index << endl;
+                            float pin_x_max = pins[i].pos.x + 10.f;
+                            float pin_x_min = pins[i].pos.x - 10.f;
+
+                            float pin_y_max = pins[i].pos.y + 10.f;
+                            float pin_y_min = pins[i].pos.y - 10.f;
+
+                            if (
+                                (event.mouseButton.x <= pin_x_max && event.mouseButton.y >= pin_x_min)
+                                &&
+                                (event.mouseButton.y <= pin_y_max && event.mouseButton.y >= pin_y_min)) 
+                            {
+                                cout << "CLICKED ON PIN " << pins[i].index << endl;
+                                ptr->sprite.setColor(sf::Color::Red);
+                            }
+
+                            else
+                                cout << "NOT CLICKED ON PIN " << endl;
+                        
                         }
 
                         this->focus = &(ptr->sprite);
@@ -527,15 +566,29 @@ public:
 
 
     void drawElements() {
-        
+
         Object* ptr = objects;
 
         if (objects == NULL)
             cout << "There is no object" << endl;
 
         while (ptr) {
-            
+
             this->window->draw(ptr->sprite);
+            switch (ptr->GetTypeName())
+            {
+            case Object::ObjTypes::O_AND:
+                static_cast<AndGate*>(ptr)->UpdatePosition();
+                break;
+            case Object::ObjTypes::O_OR:
+                static_cast<OrGate*>(ptr)->UpdatePosition();
+                break;
+            case Object::ObjTypes::O_XOR:
+                static_cast<XorGate*>(ptr)->UpdatePosition();
+                break;
+            default:
+                break;
+            }
             ptr = ptr->next;
         }
     }
