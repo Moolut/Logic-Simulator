@@ -7,6 +7,8 @@ using namespace std;
 
 class Object {
 
+
+
 protected:
     Object* next;               //Pointer to next object in the list
 
@@ -24,6 +26,12 @@ protected:
                                 //button state, D - flipflop state or whether LED is on or off)
 
     bool selected;              //Whether the object is selected for deletion
+
+
+    enum ObjTypes { O_AND, O_OR, O_XOR };
+
+    ObjTypes objectType;
+
 
 public:
     bool locked;
@@ -44,21 +52,17 @@ public:
         this->next = old_obj.next;
         this->locked = false;
         this->window = old_obj.window;
+        this->objectType = old_obj.objectType;
         this->textures[0] = old_obj.textures[0];
         this->textures[1] = old_obj.textures[1];
         this->sprite = old_obj.sprite;
         this->state = old_obj.state;
         this->selected = old_obj.selected;
     }
+
+
     virtual Object* Clone() const = 0;
-
-
-    void onClick() {
-      
-        
-    }
-
-
+    virtual ObjTypes GetTypeName() const = 0;
 
 };
 
@@ -71,6 +75,7 @@ class Wire : Object {
 
 class Pin {
 
+public:
     enum pinType { INPUT, OUTPUT };         //enum for pin type (input or output pin)
     
     enum pinState { HIGHZ, LOW, HIGH };      //enum for pin state
@@ -95,11 +100,30 @@ class Pin {
     sf::Vector2f pos;                       //Screen position of the pin
     
     pinState state;                         //Logic state of the signal on this pin
+
+    
+public:
+    friend class LogicElement;
+    Pin() {}
+    Pin(
+        int index, 
+        pinType type, 
+        sf::Vector2f pos, 
+        pinState state
+    ): 
+        index(index), 
+        type(type), 
+        pos(pos), 
+        state(state) {
+        
+
+    }
 };
 
 
 class LogicElement : public Object {
         
+protected:
     Pin pins[4];                            //List of pins of the logic element
 
     int numPins;                            //Number of pins of the logic element
@@ -107,6 +131,9 @@ class LogicElement : public Object {
 
 public:
     LogicElement() {}
+
+
+
 };
 
 
@@ -117,6 +144,30 @@ public:
     AndGate() {
             
         this->next = NULL;
+        this->numPins = 3;
+        this->objectType = O_AND;
+        
+                
+       
+
+        this->pins[0] = *new Pin (
+            0,
+            Pin::pinType::INPUT,
+            sf::Vector2f(this->sprite.getPosition().x + 10.f, this->sprite.getPosition().y + 10.f),
+            Pin::pinState::HIGHZ
+        ); 
+        this->pins[1] = * new Pin (
+            1,
+            Pin::pinType::INPUT,
+            sf::Vector2f(this->sprite.getPosition().x + 10.f, this->sprite.getPosition().y + 40.f),
+            Pin::pinState::HIGHZ
+        );;
+        this->pins[2] = * new Pin (
+            2,
+            Pin::pinType::OUTPUT,
+            sf::Vector2f(this->sprite.getPosition().x + 40.f, this->sprite.getPosition().y + 25.f),
+            Pin::pinState::HIGHZ
+        );;
         
         if (!this->textures[0].loadFromFile("../assets/AND.png"))
             exit(0);
@@ -130,6 +181,20 @@ public:
 
     Object* Clone() const { return new AndGate(*this); }
 
+    ObjTypes GetTypeName() const {
+        
+        return this->objectType;
+    };
+
+    Pin* GetPins() {
+        
+
+        return this->pins;
+    }
+
+    int GetNumOfPins() {
+        return this->numPins;
+    }
 };
 
 
@@ -140,11 +205,37 @@ public:
     OrGate() {
 
         this->next = NULL;
+        this->numPins = 2;
+        this->objectType = O_OR;
+
 
         if (!this->textures[0].loadFromFile("../assets/OR.png"))
             exit(0);
         this->sprite.setTexture(this->textures[0]);
 
+
+        Pin input_0(
+            0,
+            Pin::pinType::INPUT,
+            sf::Vector2f(this->sprite.getPosition().x + 10.f, this->sprite.getPosition().y + 10.f),
+            Pin::pinState::HIGHZ
+        );
+        Pin input_1(
+            1,
+            Pin::pinType::INPUT,
+            sf::Vector2f(this->sprite.getPosition().x + 10.f, this->sprite.getPosition().y + 40.f),
+            Pin::pinState::HIGHZ
+        );
+        Pin output_0(
+            2,
+            Pin::pinType::OUTPUT,
+            sf::Vector2f(this->sprite.getPosition().x + 40.f, this->sprite.getPosition().y + 25.f),
+            Pin::pinState::HIGHZ
+        );
+
+        this->pins[0] = input_0;
+        this->pins[1] = input_1;
+        this->pins[2] = output_0;
 
     }
 
@@ -152,6 +243,20 @@ public:
     }
     Object* Clone() const { return new OrGate(*this); }
 
+    ObjTypes GetTypeName() const {
+
+        return this->objectType;
+    };
+
+    Pin* GetPins() {
+
+        Pin return_pins[4]{ this->pins[0],this->pins[1], this->pins[2], this->pins[3] };
+
+        return return_pins;
+    }
+    int GetNumOfPins() {
+        return this->numPins;
+    }
 
 };
 
@@ -163,19 +268,57 @@ public:
     XorGate() {
 
         this->next = NULL;
+        this->objectType = O_XOR;
 
         if (!this->textures[0].loadFromFile("../assets/XOR.png"))
             exit(0);
         this->sprite.setTexture(this->textures[0]);
 
+        this->numPins = 3;
 
+        Pin input_0(
+            0,
+            Pin::pinType::INPUT,
+            sf::Vector2f(this->sprite.getPosition().x + 10.f, this->sprite.getPosition().y + 10.f),
+            Pin::pinState::HIGHZ
+        );
+        Pin input_1(
+            1,
+            Pin::pinType::INPUT,
+            sf::Vector2f(this->sprite.getPosition().x + 10.f, this->sprite.getPosition().y + 40.f),
+            Pin::pinState::HIGHZ
+        );
+        Pin output_0(
+            2,
+            Pin::pinType::OUTPUT,
+            sf::Vector2f(this->sprite.getPosition().x + 40.f, this->sprite.getPosition().y + 25.f),
+            Pin::pinState::HIGHZ
+        );
+
+        this->pins[0] = input_0;
+        this->pins[1] = input_1;
+        this->pins[2] = output_0;
     }
 
     ~XorGate() {
     }
     Object* Clone() const { return new XorGate(*this); }
 
+     ObjTypes GetTypeName() const {
 
+        return  this->objectType;
+    };
+
+     Pin* GetPins() {
+
+         Pin return_pins[4]{ this->pins[0],this->pins[1], this->pins[2], this->pins[3] };
+
+         return return_pins;
+     }
+
+     int GetNumOfPins() {
+         return this->numPins;
+     }
 };
 
 
@@ -200,8 +343,8 @@ private:
     }
     void initWindow() {
         
-        this->videoMode.height = 600;
-        this->videoMode.width = 800;
+        this->videoMode.height = 1800;
+        this->videoMode.width = 2400;
 
         this->window = new sf::RenderWindow(this->videoMode, "Logic Simulator", sf::Style::Titlebar | sf::Style::Close);
     }
@@ -292,6 +435,7 @@ public:
         {
             Object* ptr = this->objects;
 
+
             if (this->objects == NULL)
                 cout << "There is no object" << endl;
 
@@ -306,6 +450,33 @@ public:
                         this->focus = &(new_obj->sprite);
                     }
                     else {
+
+                        Pin* pins = new Pin[3];
+                        int numOfPins;
+                        switch (ptr->GetTypeName())
+                        {
+                            case Object::ObjTypes::O_AND:
+                                pins = static_cast<AndGate*>(ptr)->GetPins();
+                                numOfPins = static_cast<AndGate*>(ptr)->GetNumOfPins();
+                                break;
+                            case Object::ObjTypes::O_OR:
+                                pins = static_cast<OrGate*>(ptr)->GetPins();
+                                numOfPins = static_cast<AndGate*>(ptr)->GetNumOfPins();
+
+                                break;
+                            case Object::ObjTypes::O_XOR:
+                                pins = static_cast<XorGate*>(ptr)->GetPins();
+                                numOfPins = static_cast<AndGate*>(ptr)->GetNumOfPins();
+
+                                break;
+                            default:
+                                break;
+                        }
+                        for (int i = 0; i < numOfPins; i++) {
+                            
+                            cout << "PIN TYPE" <<  pins[i].index << endl;
+                        }
+
                         this->focus = &(ptr->sprite);
                         std::clog << this->focus << std::endl;
                     }
@@ -379,9 +550,9 @@ int main()
     // Initialize Simulator
 
     Simulator simulator;
-    Object* _toolbar_and = new AndGate();
-    Object* _toolbar_or = new OrGate();
-    Object* _toolbar_xor = new XorGate();
+    AndGate* _toolbar_and = new AndGate();
+    OrGate* _toolbar_or = new OrGate();
+    XorGate* _toolbar_xor = new XorGate();
 
 
     _toolbar_and->sprite.setPosition(sf::Vector2f(40.f, 40.f));
@@ -395,9 +566,9 @@ int main()
     this->window->draw(_toolbar_or->sprite);
     this->window->draw(_toolbar_xor->sprite);*/
 
-    simulator.AddObject(_toolbar_and);
-    simulator.AddObject(_toolbar_or);
     simulator.AddObject(_toolbar_xor);
+    simulator.AddObject(_toolbar_or);
+    simulator.AddObject(_toolbar_and);
 
     // run the program as long as the window is open
     while (simulator.isRunning())
