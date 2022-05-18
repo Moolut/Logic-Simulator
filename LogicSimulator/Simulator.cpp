@@ -5,8 +5,8 @@
 #include "Simulator.hpp"
 using namespace std;
 
-#define WIN_H 600
-#define WIN_W 800
+#define WIN_H 1800
+#define WIN_W 2400
 
 Simulator::Simulator()
 {
@@ -47,6 +47,7 @@ void Simulator::pollEvents()
     bool clicking = false;
     bool dragging = false;
     bool cancel = false;
+    bool deleteObj = false;
 
     sf::Vector2f start_pos;
 
@@ -55,7 +56,7 @@ void Simulator::pollEvents()
 
     while (this->window->pollEvent(this->event))
     {
-
+        deleteObj = false;
         switch (this->event.type)
         {
         case sf::Event::Closed:
@@ -64,6 +65,8 @@ void Simulator::pollEvents()
         case sf::Event::KeyPressed:
             if (this->event.key.code == sf::Keyboard::Escape)
                 this->window->close();
+            else if (this->event.key.code == sf::Keyboard::Delete)
+                deleteObj = true;
             break;
         case sf::Event::MouseMoved:
             mousePos = sf::Vector2i(event.mouseMove.x, event.mouseMove.y);
@@ -105,11 +108,17 @@ void Simulator::pollEvents()
     if (cancel) {
         cout << "dropped" << endl;
         if (drawing && drawing_wire != nullptr && drawing_wire->complete == false) {
-            this->RemoveObject(drawing_wire);
+            
+            //this->RemoveObject(drawing_wire);
 
             this->drawing_wire = nullptr;
             this->drawing = false;
         }
+    }
+
+    if (deleteObj) {
+        
+        this->RemoveObject();
     }
 
     if (clicking)
@@ -121,6 +130,7 @@ void Simulator::pollEvents()
 
         while (ptr)
         {
+            // SPRITE DETECTION
             if (ptr->sprite.getGlobalBounds().contains(sf::Vector2f(event.mouseButton.x, event.mouseButton.y)))
             {
                 cout << "Clicked on obj " << endl;
@@ -133,6 +143,7 @@ void Simulator::pollEvents()
                 }
                 else
                 {
+                    ptr->selected = true;
 
                     Pin *pins = new Pin[3];
                     int numOfPins;
@@ -159,11 +170,11 @@ void Simulator::pollEvents()
                     this->focus = &(ptr->sprite);
                     std::clog << this->focus << std::endl;
 
-                    cout << "MOUSE POSITION x: " << event.mouseButton.x << " y: " << event.mouseButton.y << endl;
+                    //cout << "MOUSE POSITION x: " << event.mouseButton.x << " y: " << event.mouseButton.y << endl;
 
                     for (int i = 0; i < numOfPins; i++)
                     {
-                        cout << "PIN " << pins[i].index << " LOCATION x: " << pins[i].pos.x << " y: " << pins[i].pos.y << endl;
+                        //cout << "PIN " << pins[i].index << " LOCATION x: " << pins[i].pos.x << " y: " << pins[i].pos.y << endl;
 
                         float pin_x_max = pins[i].pos.x + 10.f;
                         float pin_x_min = pins[i].pos.x - 10.f;
@@ -175,32 +186,41 @@ void Simulator::pollEvents()
                             (event.mouseButton.x <= pin_x_max && event.mouseButton.x >= pin_x_min) &&
                             (event.mouseButton.y <= pin_y_max && event.mouseButton.y >= pin_y_min))
                         {
-                            cout << "CLICKED ON PIN " << pins[i].index << endl;
+                            //cout << "CLICKED ON PIN " << pins[i].index << endl;
+                            ptr->selected = false;
 
                             if (drawing && drawing_wire != nullptr) {
+                                // FINISH TO DRAW WIRE
                                 drawing_wire->ConnectPin(&pins[i]);
                                 this->drawing_wire = nullptr;
                                 this->drawing = false;
                             }
                             else {
+                                // START TO DRAW WIRE
                                 Wire* wire = new Wire(pins[i].pos, &pins[i]);
                                 this->AddObject(wire);
-
                                 this->drawing_wire = wire;
                                 this->drawing = true;
                             } 
-                        }
+                        }                       
                         else {
                             cout << "NOT CLICKED ON PIN " << endl;
                         }
-                    }                                     
+                    }
+
                 }
-                break;
+            }
+            else if (dynamic_cast<Wire*>(ptr) != NULL) {
+                cout << "THERE IS ANY WIRE " << endl;
+
+                // LOOP THROUGH THE WIRES AND FIND THE SELECTED WIRE
             }
             else
             {
+                ptr->selected = false;
                 cout << "Not Clicked on obj" << endl;
             }
+
             ptr = ptr->next;
         }
     }
@@ -210,6 +230,7 @@ void Simulator::pollEvents()
     else if (dragging)
     {
         focus->setPosition(static_cast<float>(mousePos.x) - focus->getGlobalBounds().width / 2, static_cast<float>(mousePos.y) - focus->getGlobalBounds().height / 2);
+        
     }
     else if (!holding)
         focus = nullptr; // I'm not doing anything so I can assume there's no sprite being focused
@@ -242,52 +263,35 @@ void Simulator::AddObject(Object *obj)
     objects = obj;
 };
 
-void Simulator::RemoveObject(Object* obj)
+void Simulator::RemoveObject()
 {
-    cout << "Removing object" << endl;
-
-    /*Object* ptr = this->objects;
+    Object* ptr = this->objects;
     Object* prev = NULL;
 
-    if (this->objects == NULL) {
-        cout << "List is empty" << endl;
-    }
+    if (ptr == NULL)
+        cout << "There is no object" << endl;
 
-    while (ptr) {
-        if (ptr == obj) {
+
+    while (ptr)
+    {
+        if (ptr->selected) {
+
             if (prev) {
+
                 prev->next = ptr->next;
             }
             else {
                 this->objects = ptr->next;
             }
 
-            switch (ptr->GetTypeName())
-            {
-            case Object::ObjTypes::O_AND:
-                delete static_cast<AndGate*>(ptr);
-                break;
-            case Object::ObjTypes::O_OR:
-                delete static_cast<OrGate*>(ptr);
-                break;
-            case Object::ObjTypes::O_XOR:
-                delete static_cast<XorGate*>(ptr);
-                break;
-            case Object::ObjTypes::O_WIRE:
-                cout << "Removed wire" << endl;
-                delete static_cast<Wire*>(ptr);
-                break;
-            default:
-                cout << "Removed default" << endl;
-                delete ptr;
-                break;
-            }
-            return;
+            delete ptr; // POINTER IS NOT DELETED FROM MEMORY !!!! SHOULD BE DELETED FROM MEMORY
+            break;
         }
-
         prev = ptr;
         ptr = ptr->next;
-    }*/
+
+
+    }
 
 
 };
@@ -302,7 +306,15 @@ void Simulator::drawElements()
 
     while (ptr)
     {
+        if (ptr->selected && !ptr->locked) {
+            
+            ptr->sprite.setColor(sf::Color::Red);
+            
+        }
+        else {
+            ptr->sprite.setColor(sf::Color::Yellow);
 
+        }
         switch (ptr->GetTypeName())
         {
         case Object::ObjTypes::O_AND:

@@ -31,6 +31,6 @@ public:
     void update();
     void render();
     void AddObject(Object *obj);
-    void RemoveObject(Object* obj);
+    void RemoveObject();
     void drawElements();
 };

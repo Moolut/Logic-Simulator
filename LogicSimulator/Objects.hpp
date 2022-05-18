@@ -32,8 +32,7 @@ public:
     Object() {}
     ~Object()
     {
-        delete this->next;
-        delete this->window;
+       // TO DO MEMORY DE ALLOCATION SHOULD ADDED
     }
     Object(const Object &old_obj);
     virtual Object *Clone() const = 0;
