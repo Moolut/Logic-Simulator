@@ -20,7 +20,9 @@ protected:
         O_AND,
         O_OR,
         O_XOR,
-        O_WIRE
+        O_WIRE,
+        O_LED,
+        O_VDD
     };
     ObjTypes objectType;
 
@@ -37,22 +39,15 @@ public:
     Object(const Object &old_obj);
     virtual Object *Clone() const = 0;
     virtual ObjTypes GetTypeName() const = 0;
+    virtual void Simulate() = 0;
+
 };
 
 class Pin
 {
 public:
-    enum pinType
-    {
-        INPUT,
-        OUTPUT
-    }; // enum for pin type (input or output pin)
-    enum pinState
-    {
-        HIGHZ,
-        LOW,
-        HIGH
-    };                   // enum for pin state
+    enum pinType {INPUT,OUTPUT};      // enum for pin type (input or output pin)
+    enum pinState {HIGHZ,LOW,HIGH};    // enum for pin state
     int index;           // Index of the pin for an element
                          // First input pin has index 0, second input
                          // pin has index 1, output pin has index 2, so
@@ -69,6 +64,7 @@ public:
 public:
     friend class LogicElement;
     Pin() {}
+    ~Pin() {}
     Pin(int index,
         pinType type,
         sf::Vector2f pos,
@@ -104,6 +100,8 @@ public:
     Object* Clone() const { return 0; };
 
     ObjTypes GetTypeName() const;
+
+    void Simulate();
 };
 
 
@@ -117,8 +115,13 @@ protected:
 
 public:
     LogicElement() {}
+    ~LogicElement() {};
+    sf::Sprite DrawPins(int i);
+    void UpdatePosition();
+    Pin* GetPins();
+    int GetNumOfPins();
+    ObjTypes GetTypeName() const;
 
-    virtual void UpdatePosition() = 0;
 };
 
 class AndGate : public LogicElement
@@ -131,15 +134,7 @@ public:
 
     Object *Clone() const;
 
-    ObjTypes GetTypeName() const;
-
-    Pin *GetPins();
-
-    int GetNumOfPins();
-
-    void UpdatePosition();
-
-    sf::Sprite DrawPins(int i);
+    void Simulate();
 
 };
 
@@ -151,14 +146,8 @@ public:
 
     ~OrGate();
     Object *Clone() const;
+    void Simulate();
 
-    ObjTypes GetTypeName() const;
-
-    Pin *GetPins();
-    int GetNumOfPins();
-
-    void UpdatePosition();
-    sf::Sprite DrawPins(int i);
 
 };
 
@@ -170,14 +159,23 @@ public:
 
     ~XorGate();
     Object *Clone() const;
+    void Simulate();
 
-    ObjTypes GetTypeName() const;
 
-    Pin *GetPins();
+};
 
-    int GetNumOfPins();
+class Led : public LogicElement {
+public:
+    Led();
+    ~Led();
+    Object* Clone() const;
+    void Simulate();
+};
 
-    void UpdatePosition();
-    sf::Sprite DrawPins(int i);
-
+class VDD : public LogicElement {
+public:
+    VDD();
+    ~VDD();
+    Object* Clone() const;
+    void Simulate();
 };

@@ -3,9 +3,6 @@
 #include <SFML/Graphics.hpp>
 #include "Objects.hpp"
 
-#define WIN_H 600
-#define WIN_W 800
-
 class Simulator
 {
 
