@@ -5,13 +5,14 @@
 #include "Simulator.hpp"
 using namespace std;
 
-#define WIN_H 600
-#define WIN_W 800
+#define WIN_H 1000
+#define WIN_W 1200
 
 Simulator::Simulator()
 {
     this->initVariables();
     this->initWindow();
+
 };
 
 Simulator::~Simulator()
@@ -154,6 +155,10 @@ void Simulator::pollEvents()
                         pins = static_cast<AndGate *>(ptr)->GetPins();
                         numOfPins = static_cast<AndGate *>(ptr)->GetNumOfPins();
                         break;
+                    case Object::ObjTypes::O_NOT:
+                        pins = static_cast<NotGate*>(ptr)->GetPins();
+                        numOfPins = static_cast<NotGate*>(ptr)->GetNumOfPins();
+                        break;
                     case Object::ObjTypes::O_OR:
                         pins = static_cast<OrGate *>(ptr)->GetPins();
                         numOfPins = static_cast<OrGate*>(ptr)->GetNumOfPins();
@@ -164,6 +169,11 @@ void Simulator::pollEvents()
                         numOfPins = static_cast<XorGate*>(ptr)->GetNumOfPins();
 
                         break;
+                    case Object::ObjTypes::O_DFF:
+                        pins = static_cast<DFFGate*>(ptr)->GetPins();
+                        numOfPins = static_cast<DFFGate*>(ptr)->GetNumOfPins();
+
+                        break;
                     case Object::ObjTypes::O_LED:
                         pins = static_cast<Led*>(ptr)->GetPins();
                         numOfPins = static_cast<Led*>(ptr)->GetNumOfPins();
@@ -172,6 +182,14 @@ void Simulator::pollEvents()
                     case Object::ObjTypes::O_VDD:
                         pins = static_cast<VDD*>(ptr)->GetPins();
                         numOfPins = static_cast<VDD*>(ptr)->GetNumOfPins();
+                        break;
+                    case Object::ObjTypes::O_GND:
+                        pins = static_cast<GND*>(ptr)->GetPins();
+                        numOfPins = static_cast<GND*>(ptr)->GetNumOfPins();
+                        break;
+                    case Object::ObjTypes::O_CLK:
+                        pins = static_cast<CLK*>(ptr)->GetPins();
+                        numOfPins = static_cast<CLK*>(ptr)->GetNumOfPins();
                         break;
                     default:
                         break;
@@ -308,11 +326,23 @@ void Simulator::RemoveObject()
             case Object::ObjTypes::O_XOR:
                 delete static_cast<XorGate*>(ptr);
                 break;
+            case Object::ObjTypes::O_NOT:
+                delete static_cast<NotGate*>(ptr);
+                break;
+            case Object::ObjTypes::O_DFF:
+                delete static_cast<DFFGate*>(ptr);
+                break;
             case Object::ObjTypes::O_LED:
                 delete static_cast<Led*>(ptr);
                 break;
             case Object::ObjTypes::O_VDD:
                 delete static_cast<VDD*>(ptr);
+                break;
+            case Object::ObjTypes::O_GND:
+                delete static_cast<GND*>(ptr);
+                break;
+            case Object::ObjTypes::O_CLK:
+                delete static_cast<CLK*>(ptr);
                 break;
             case Object::ObjTypes::O_WIRE:
                 delete static_cast<Wire*>(ptr);
@@ -386,6 +416,30 @@ void Simulator::drawElements()
             }
 
             break;
+        case Object::ObjTypes::O_NOT:
+            this->window->draw(ptr->sprite);
+
+            static_cast<NotGate*>(ptr)->UpdatePosition();
+            static_cast<NotGate*>(ptr)->Simulate();
+
+
+            for (int i = 0; i < static_cast<NotGate*>(ptr)->GetNumOfPins(); i++) {
+                this->window->draw(static_cast<NotGate*>(ptr)->DrawPins(i));
+            }
+
+            break;
+        case Object::ObjTypes::O_DFF:
+            this->window->draw(ptr->sprite);
+
+            static_cast<DFFGate*>(ptr)->UpdatePosition();
+            static_cast<DFFGate*>(ptr)->Simulate();
+
+
+            for (int i = 0; i < static_cast<DFFGate*>(ptr)->GetNumOfPins(); i++) {
+                this->window->draw(static_cast<DFFGate*>(ptr)->DrawPins(i));
+            }
+
+            break;
         case Object::ObjTypes::O_LED:
             this->window->draw(ptr->sprite);
 
@@ -406,6 +460,30 @@ void Simulator::drawElements()
 
             for (int i = 0; i < static_cast<VDD*>(ptr)->GetNumOfPins(); i++) {
                 this->window->draw(static_cast<VDD*>(ptr)->DrawPins(i));
+            }
+
+            break;
+        case Object::ObjTypes::O_GND:
+            this->window->draw(ptr->sprite);
+
+            static_cast<GND*>(ptr)->UpdatePosition();
+            static_cast<GND*>(ptr)->Simulate();
+
+
+            for (int i = 0; i < static_cast<GND*>(ptr)->GetNumOfPins(); i++) {
+                this->window->draw(static_cast<GND*>(ptr)->DrawPins(i));
+            }
+
+            break;
+        case Object::ObjTypes::O_CLK:
+            this->window->draw(ptr->sprite);
+
+            static_cast<CLK*>(ptr)->UpdatePosition();
+            static_cast<CLK*>(ptr)->Simulate();
+
+
+            for (int i = 0; i < static_cast<CLK*>(ptr)->GetNumOfPins(); i++) {
+                this->window->draw(static_cast<CLK*>(ptr)->DrawPins(i));
             }
 
             break;

@@ -20,9 +20,13 @@ protected:
         O_AND,
         O_OR,
         O_XOR,
+        O_NOT,
+        O_DFF,
         O_WIRE,
         O_LED,
-        O_VDD
+        O_VDD,
+        O_GND,
+        O_CLK
     };
     ObjTypes objectType;
 
@@ -164,6 +168,24 @@ public:
 
 };
 
+class NotGate : public LogicElement
+{
+public:
+    NotGate();
+    ~NotGate();
+    Object* Clone() const;
+    void Simulate();
+};
+
+class DFFGate : public LogicElement
+{
+public:
+    DFFGate();
+    ~DFFGate();
+    Object* Clone() const;
+    void Simulate();
+};
+
 class Led : public LogicElement {
 public:
     Led();
@@ -176,6 +198,25 @@ class VDD : public LogicElement {
 public:
     VDD();
     ~VDD();
+    Object* Clone() const;
+    void Simulate();
+};
+
+class GND : public LogicElement {
+public:
+    GND();
+    ~GND();
+    Object* Clone() const;
+    void Simulate();
+};
+
+class CLK : public LogicElement {
+public:
+    int count = 0;
+    const float m_fDelay = 1.f;
+    sf::Clock m_Clock;
+    CLK();
+    ~CLK();
     Object* Clone() const;
     void Simulate();
 };

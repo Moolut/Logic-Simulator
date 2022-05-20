@@ -21,6 +21,7 @@ private:
     void initWindow();
 
 public:
+    int counter = 0;
     Simulator();
     ~Simulator();
     const bool isRunning() const { return this->window->isOpen(); }

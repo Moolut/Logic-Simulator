@@ -2,6 +2,8 @@
 #include <iostream>
 #include <SFML/Graphics.hpp>
 #include "Objects.hpp"
+#include <chrono>
+#include <thread>
 
 Object::Object(const Object &old_obj)
 {
@@ -210,6 +212,109 @@ void XorGate::Simulate() {
     }
 };
 
+NotGate::NotGate()
+{
+
+    this->next = NULL;
+    this->objectType = O_NOT;
+
+    if (!this->textures[0].loadFromFile("../assets/NOT.png"))
+        exit(0);
+    this->sprite.setTexture(this->textures[0]);
+
+    this->numPins = 2;
+
+    this->pins[0] = *new Pin(
+        0,
+        Pin::pinType::INPUT,
+        sf::Vector2f(this->sprite.getPosition().x + 1.f, this->sprite.getPosition().y + 25.f),
+        Pin::pinState::HIGHZ);
+    this->pins[1] = *new Pin(
+        1,
+        Pin::pinType::OUTPUT,
+        sf::Vector2f(this->sprite.getPosition().x + 90.f, this->sprite.getPosition().y + 25.f),
+        Pin::pinState::HIGHZ);
+    ;
+};
+
+NotGate::~NotGate() {};
+
+Object* NotGate::Clone() const { return new NotGate(*this); };
+
+void NotGate::Simulate() {
+
+    if (pins[0].state == Pin::pinState::HIGH) {
+        pins[1].state = Pin::pinState::LOW;
+    }
+    else if (pins[0].state == Pin::pinState::LOW) {
+        pins[1].state = Pin::pinState::HIGH;
+    }
+};
+
+DFFGate::DFFGate()
+{
+
+    this->next = NULL;
+    this->objectType = O_DFF;
+
+    if (!this->textures[0].loadFromFile("../assets/DFF.png"))
+        exit(0);
+    this->sprite.setTexture(this->textures[0]);
+
+    this->numPins = 4;
+
+    this->pins[0] = *new Pin(
+        0,
+        Pin::pinType::INPUT,
+        sf::Vector2f(this->sprite.getPosition().x + 1.f, this->sprite.getPosition().y + 15.f),
+        Pin::pinState::HIGHZ);
+    this->pins[1] = *new Pin( //CLOCK
+        1,
+        Pin::pinType::INPUT,
+        sf::Vector2f(this->sprite.getPosition().x + 1.f, this->sprite.getPosition().y + 35.f),
+        Pin::pinState::HIGHZ);
+    ;
+    this->pins[2] = *new Pin(
+        2,
+        Pin::pinType::OUTPUT,
+        sf::Vector2f(this->sprite.getPosition().x + 90.f, this->sprite.getPosition().y + 15.f),
+        Pin::pinState::HIGHZ);
+    ;
+    this->pins[3] = *new Pin(
+        3,
+        Pin::pinType::OUTPUT,
+        sf::Vector2f(this->sprite.getPosition().x + 90.f, this->sprite.getPosition().y + 55.f),
+        Pin::pinState::HIGHZ);
+    ;
+
+};
+
+DFFGate::~DFFGate() {};
+
+Object* DFFGate::Clone() const { return new DFFGate(*this); };
+
+void DFFGate::Simulate() {
+
+    if (pins[0].state == Pin::pinState::LOW) {
+        pins[2].state = Pin::pinState::LOW;
+        pins[3].state = Pin::pinState::HIGH;
+    }
+    else if (pins[0].state == Pin::pinState::HIGH && pins[1].state == Pin::pinState::LOW) {
+        pins[2].state = Pin::pinState::LOW;
+        pins[3].state = Pin::pinState::HIGH;
+    }
+    else if (pins[0].state == Pin::pinState::HIGH && pins[1].state == Pin::pinState::HIGH) {
+        if (pins[2].state == Pin::pinState::LOW) {
+            pins[2].state = Pin::pinState::HIGH;
+            pins[3].state = Pin::pinState::LOW;
+        }
+        else {
+            pins[2].state = pins[2].state;
+            pins[3].state = pins[3].state;
+        }
+    }
+};
+
 Led::Led()
 {
 
@@ -242,13 +347,13 @@ Led::~Led() {};
 Object* Led::Clone() const { return new Led(*this); };
 
 void Led::Simulate() {
-    if (pins[0].state > pins[1].state || pins[1].state > pins[0].state) {
+    if (pins[0].state == Pin::pinState::HIGH && (pins[1].state == Pin::pinState::LOW || pins[1].state == Pin::pinState::HIGHZ)) {
         sprite.setTexture(this->textures[1]);
     }
     else {
         sprite.setTexture(this->textures[0]);
     }
-}
+};
 
 
 
@@ -281,6 +386,72 @@ void VDD::Simulate() {
     pins[0].state = Pin::pinState::HIGH;
 };
 
+GND::GND()
+{
+
+    this->next = NULL;
+    this->objectType = O_GND;
+
+    if (!this->textures[0].loadFromFile("../assets/GND.png"))
+        exit(0);
+
+    this->sprite.setTexture(this->textures[0]);
+
+    this->numPins = 1;
+
+    this->pins[0] = *new Pin(
+        0,
+        Pin::pinType::OUTPUT,
+        sf::Vector2f(this->sprite.getPosition().x + 20.f, this->sprite.getPosition().y + 1.f),
+        Pin::pinState::LOW);
+
+};
+
+GND::~GND() {};
+
+Object* GND::Clone() const { return new GND(*this); };
+
+void GND::Simulate() {
+    pins[0].state = Pin::pinState::LOW;
+};
+
+
+CLK::CLK()
+{
+
+    this->next = NULL;
+    this->objectType = O_CLK;
+
+    if (!this->textures[0].loadFromFile("../assets/CLOCK.png"))
+        exit(0);
+
+    this->sprite.setTexture(this->textures[0]);
+
+    this->numPins = 1;
+
+    this->pins[0] = *new Pin(
+        0,
+        Pin::pinType::OUTPUT,
+        sf::Vector2f(this->sprite.getPosition().x + 70.f, this->sprite.getPosition().y + 25.f),
+        Pin::pinState::LOW);
+
+};
+
+CLK::~CLK() {};
+
+Object* CLK::Clone() const { return new CLK(*this); };
+
+
+void CLK::Simulate() {    
+
+    if (m_Clock.getElapsedTime().asSeconds() < m_fDelay)
+        return;
+
+    m_Clock.restart();
+    this->count += 1;
+    pins[0].state = this->count%2 == 0 ? Pin::pinState::LOW : Pin::pinState::HIGH;
+};
+
 Object::ObjTypes LogicElement::GetTypeName() const
 {
     return this->objectType;
@@ -299,17 +470,33 @@ int LogicElement::GetNumOfPins()
 
 void LogicElement::UpdatePosition()
 {
-    if (numPins == 3) {
+    if (objectType == O_AND || objectType == O_OR || objectType == O_XOR) {
         this->pins[0].pos = sf::Vector2f(this->sprite.getPosition().x + 1.f, this->sprite.getPosition().y + 10.f);
         this->pins[1].pos = sf::Vector2f(this->sprite.getPosition().x + 1.f, this->sprite.getPosition().y + 40.f);
         this->pins[2].pos = sf::Vector2f(this->sprite.getPosition().x + 90.f, this->sprite.getPosition().y + 25.f);
     }
-    else if (numPins == 2) {
+    else if (objectType == O_DFF) {
+        this->pins[0].pos = sf::Vector2f(this->sprite.getPosition().x + 1.f, this->sprite.getPosition().y + 15.f);
+        this->pins[1].pos = sf::Vector2f(this->sprite.getPosition().x + 1.f, this->sprite.getPosition().y + 35.f);
+        this->pins[2].pos = sf::Vector2f(this->sprite.getPosition().x + 90.f, this->sprite.getPosition().y + 15.f);
+        this->pins[3].pos = sf::Vector2f(this->sprite.getPosition().x + 90.f, this->sprite.getPosition().y + 55.f);
+    }
+    else if (objectType == O_NOT) {
+        this->pins[0].pos = sf::Vector2f(this->sprite.getPosition().x + 1.f, this->sprite.getPosition().y + 25.f);
+        this->pins[1].pos = sf::Vector2f(this->sprite.getPosition().x + 90.f, this->sprite.getPosition().y + 25.f);
+    }
+    else if (objectType == O_LED) {
         this->pins[0].pos = sf::Vector2f(this->sprite.getPosition().x + 8.f, this->sprite.getPosition().y + 68.f);
         this->pins[1].pos = sf::Vector2f(this->sprite.getPosition().x + 25.f, this->sprite.getPosition().y + 68.f);
     }
-    else {
+    else if (objectType == O_VDD) {
         this->pins[0].pos = sf::Vector2f(this->sprite.getPosition().x + 25.f, this->sprite.getPosition().y + 50.f);
+    }
+    else if (objectType == O_GND) {
+        this->pins[0].pos = sf::Vector2f(this->sprite.getPosition().x + 20.f, this->sprite.getPosition().y + 1.f);
+    }
+    else if (objectType == O_CLK) {
+        this->pins[0].pos = sf::Vector2f(this->sprite.getPosition().x + 70.f, this->sprite.getPosition().y + 25.f);
     }
 
 };
