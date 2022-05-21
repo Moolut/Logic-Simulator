@@ -3,28 +3,30 @@
 #include <SFML/Graphics.hpp>
 #include "Objects.hpp"
 #include "Simulator.hpp"
+
+#include <windows.h>;
+#include <stdio.h>;
+#pragma comment(lib, "user32.lib")
+
 using namespace std;
 
-#define WIN_H 1800
-#define WIN_W 2400
+#define WIN_H GetSystemMetrics(SM_CYSCREEN) * 0.9;
+#define WIN_W GetSystemMetrics(SM_CXSCREEN) * 0.75;
 
 Simulator::Simulator()
 {
     this->initVariables();
     this->initWindow();
-
 };
 
 Simulator::~Simulator()
 {
-
     delete this->window;
     delete this->objects;
 };
 
 void Simulator::initVariables()
 {
-
     this->window = nullptr;
     this->objects = nullptr;
     this->focus = nullptr;
@@ -43,16 +45,9 @@ void Simulator::initWindow()
 void Simulator::pollEvents()
 {
 
-    bool creating = false;
-    bool moving = false;
-    bool clicking = false;
-    bool dragging = false;
-    bool cancel = false;
-    bool deleteObj = false;
+    bool moving = false, clicking = false, dragging = false, cancel = false, deleteObj = false;
 
     sf::Vector2f start_pos;
-
-
     sf::Vector2i mousePos;
 
     while (this->window->pollEvent(this->event))
@@ -106,9 +101,10 @@ void Simulator::pollEvents()
     this->holding = clicked && (this->focus != nullptr);
     dragging = (this->holding && moving);
 
-    if (cancel) {
-        if (drawing && drawing_wire != nullptr && drawing_wire->complete == false) {
-            
+    if (cancel)
+    {
+        if (drawing && drawing_wire != nullptr && !drawing_wire->isComplete())
+        {
             this->drawing_wire->selected = true;
             this->RemoveObject();
 
@@ -117,8 +113,8 @@ void Simulator::pollEvents()
         }
     }
 
-    if (deleteObj) {
-        
+    if (deleteObj)
+    {
         this->RemoveObject();
     }
 
@@ -146,21 +142,22 @@ void Simulator::pollEvents()
                 {
                     ptr->selected = true;
 
-                    Pin* clicked_pin = nullptr;
+                    Pin *clicked_pin = nullptr;
 
-                    clicked_pin = dynamic_cast<LogicElement*>(ptr)->GetClickedPin(event.mouseButton.x,event.mouseButton.y);
-
-                   
+                    clicked_pin = dynamic_cast<LogicElement *>(ptr)->GetClickedPin(event.mouseButton.x, event.mouseButton.y);
 
                     this->focus = &(ptr->sprite);
 
                     // IF CLICKED ON ANY PIN OF THE CLICKED OBJ
-                    if (clicked_pin) {
+                    if (clicked_pin)
+                    {
                         ptr->selected = false;
 
-                        if (drawing && drawing_wire != nullptr) {
+                        if (drawing && drawing_wire != nullptr)
+                        {
                             // FINISH TO DRAW WIRE
-                            if (clicked_pin->type != Pin::pinType::OUTPUT) {
+                            if (clicked_pin->type != Pin::pinType::OUTPUT)
+                            {
                                 drawing_wire->ConnectPin(clicked_pin);
                                 clicked_pin->wires[clicked_pin->numConnections] = this->drawing_wire;
                                 clicked_pin->numConnections += 1;
@@ -168,9 +165,10 @@ void Simulator::pollEvents()
                                 this->drawing = false;
                             }
                         }
-                        else {
+                        else
+                        {
                             // START TO DRAW WIRE
-                            Wire* wire = new Wire(clicked_pin->pos, clicked_pin);
+                            Wire *wire = new Wire(clicked_pin->GetPosition(), clicked_pin);
                             clicked_pin->wires[clicked_pin->numConnections] = wire;
                             clicked_pin->numConnections += 1;
                             this->AddObject(wire);
@@ -178,17 +176,14 @@ void Simulator::pollEvents()
                             this->drawing = true;
                         }
                     }
-
-
                 }
             }
-            else if (dynamic_cast<Wire*>(ptr) != NULL) {
-
-                Wire* wire = static_cast<Wire*>(ptr);
-
+            else if (dynamic_cast<Wire *>(ptr) != NULL)
+            {
+                Wire *wire = static_cast<Wire *>(ptr);
                 if (wire->pDistance(event.mouseButton.x, event.mouseButton.y))
                     ptr->selected = true;
-                else 
+                else
                     ptr->selected = false;
             }
             else
@@ -199,8 +194,9 @@ void Simulator::pollEvents()
             ptr = ptr->next;
         }
     }
-    else if (drawing && drawing_wire != nullptr) {
-       drawing_wire->UpdateEndPoint(sf::Vector2f(event.mouseMove.x, event.mouseMove.y));
+    else if (drawing && drawing_wire != nullptr)
+    {
+        drawing_wire->UpdateEndPoint(sf::Vector2f(event.mouseMove.x, event.mouseMove.y));
     }
     else if (dragging)
     {
@@ -208,20 +204,15 @@ void Simulator::pollEvents()
     }
     else if (!holding)
         focus = nullptr; // I'm not doing anything so I can assume there's no sprite being focused
-    
 };
 
 void Simulator::update()
 {
-
     this->pollEvents();
-
-    // cout << "Mouse position-> x: " << sf::Mouse::getPosition(*this->window).x << " y: " << sf::Mouse::getPosition(*this->window).y << endl;
 };
 
 void Simulator::render()
 {
-
     this->window->clear(sf::Color::Black);
 
     drawElements();
@@ -231,17 +222,17 @@ void Simulator::render()
 
 void Simulator::AddObject(Object *obj)
 {
-
     obj->next = objects;
     objects = obj;
 };
 
 void Simulator::RemoveObject()
 {
-    Object* ptr = this->objects;
-    Object* prev = NULL;
+    Object *ptr = this->objects;
+    Object *prev = NULL;
 
-    if (ptr == NULL) {
+    if (ptr == NULL)
+    {
         cout << "There is no object" << endl;
         return;
     }
@@ -249,88 +240,98 @@ void Simulator::RemoveObject()
     int getNumOfWires = 0;
     while (ptr)
     {
-        if (ptr->selected) {
+        if (ptr->selected)
+        {
 
-            if (prev) {
-
+            if (prev)
+            {
                 prev->next = ptr->next;
             }
-            else {
+            else
+            {
                 this->objects = ptr->next;
             }
 
             switch (ptr->GetTypeName())
             {
-                case Object::ObjTypes::O_AND:
-
-                    getNumOfWires = static_cast<AndGate*>(ptr)->GetNumberOfWiresConnectedToPins();
-                    if (getNumOfWires != 0) {
-                        this->RemoveWiresConnectToObj(getNumOfWires);
-                    }
-                    delete static_cast<AndGate*>(ptr);
-                    break;
-                case Object::ObjTypes::O_OR:
-                    getNumOfWires = static_cast<OrGate*>(ptr)->GetNumberOfWiresConnectedToPins();
-                    if (getNumOfWires != 0) {
-                        this->RemoveWiresConnectToObj(getNumOfWires);
-                    }
-                    delete static_cast<OrGate*>(ptr);
-                    break;
-                case Object::ObjTypes::O_XOR:
-                    getNumOfWires = static_cast<XorGate*>(ptr)->GetNumberOfWiresConnectedToPins();
-                    if (getNumOfWires != 0) {
-                        this->RemoveWiresConnectToObj(getNumOfWires);
-                    }
-                    delete static_cast<XorGate*>(ptr);
-                    break;
-                case Object::ObjTypes::O_NOT:
-                    getNumOfWires = static_cast<NotGate*>(ptr)->GetNumberOfWiresConnectedToPins();
-                    if (getNumOfWires != 0) {
-                        this->RemoveWiresConnectToObj(getNumOfWires);
-                    }
-                    delete static_cast<NotGate*>(ptr);
-                    break;
-                case Object::ObjTypes::O_DFF:
-                    getNumOfWires = static_cast<DFFGate*>(ptr)->GetNumberOfWiresConnectedToPins();
-                    if (getNumOfWires != 0) {
-                        this->RemoveWiresConnectToObj(getNumOfWires);
-                    }
-                    delete static_cast<DFFGate*>(ptr);
-                    break;
-                case Object::ObjTypes::O_LED:
-                    getNumOfWires = static_cast<Led*>(ptr)->GetNumberOfWiresConnectedToPins();
-                    if (getNumOfWires != 0) {
-                        this->RemoveWiresConnectToObj(getNumOfWires);
-                    }
-                    delete static_cast<Led*>(ptr);
-                    break;
-                case Object::ObjTypes::O_VDD:
-                    getNumOfWires = static_cast<VDD*>(ptr)->GetNumberOfWiresConnectedToPins();
-                    if (getNumOfWires != 0) {
-                        this->RemoveWiresConnectToObj(getNumOfWires);
-                    }
-                    delete static_cast<VDD*>(ptr);
-                    break;
-                case Object::ObjTypes::O_GND:
-                    getNumOfWires = static_cast<GND*>(ptr)->GetNumberOfWiresConnectedToPins();
-                    if (getNumOfWires != 0) {
-                        this->RemoveWiresConnectToObj(getNumOfWires);
-                    }
-                    delete static_cast<GND*>(ptr);
-                    break;
-                case Object::ObjTypes::O_CLK:
-                    getNumOfWires = static_cast<CLK*>(ptr)->GetNumberOfWiresConnectedToPins();
-                    if (getNumOfWires != 0) {
-                        this->RemoveWiresConnectToObj(getNumOfWires);
-                    }
-                    delete static_cast<CLK*>(ptr);
-                    break;
-                case Object::ObjTypes::O_WIRE:
-                    delete static_cast<Wire*>(ptr);
-                    break;
-                default:
-                    delete ptr;
-                    break;
+            case Object::ObjTypes::O_AND:
+                getNumOfWires = static_cast<AndGate *>(ptr)->GetNumberOfWiresConnectedToPins();
+                if (getNumOfWires != 0)
+                {
+                    this->RemoveWiresConnectToObj(getNumOfWires);
+                }
+                delete static_cast<AndGate *>(ptr);
+                break;
+            case Object::ObjTypes::O_OR:
+                getNumOfWires = static_cast<OrGate *>(ptr)->GetNumberOfWiresConnectedToPins();
+                if (getNumOfWires != 0)
+                {
+                    this->RemoveWiresConnectToObj(getNumOfWires);
+                }
+                delete static_cast<OrGate *>(ptr);
+                break;
+            case Object::ObjTypes::O_XOR:
+                getNumOfWires = static_cast<XorGate *>(ptr)->GetNumberOfWiresConnectedToPins();
+                if (getNumOfWires != 0)
+                {
+                    this->RemoveWiresConnectToObj(getNumOfWires);
+                }
+                delete static_cast<XorGate *>(ptr);
+                break;
+            case Object::ObjTypes::O_NOT:
+                getNumOfWires = static_cast<NotGate *>(ptr)->GetNumberOfWiresConnectedToPins();
+                if (getNumOfWires != 0)
+                {
+                    this->RemoveWiresConnectToObj(getNumOfWires);
+                }
+                delete static_cast<NotGate *>(ptr);
+                break;
+            case Object::ObjTypes::O_DFF:
+                getNumOfWires = static_cast<DFFGate *>(ptr)->GetNumberOfWiresConnectedToPins();
+                if (getNumOfWires != 0)
+                {
+                    this->RemoveWiresConnectToObj(getNumOfWires);
+                }
+                delete static_cast<DFFGate *>(ptr);
+                break;
+            case Object::ObjTypes::O_LED:
+                getNumOfWires = static_cast<Led *>(ptr)->GetNumberOfWiresConnectedToPins();
+                if (getNumOfWires != 0)
+                {
+                    this->RemoveWiresConnectToObj(getNumOfWires);
+                }
+                delete static_cast<Led *>(ptr);
+                break;
+            case Object::ObjTypes::O_VDD:
+                getNumOfWires = static_cast<VDD *>(ptr)->GetNumberOfWiresConnectedToPins();
+                if (getNumOfWires != 0)
+                {
+                    this->RemoveWiresConnectToObj(getNumOfWires);
+                }
+                delete static_cast<VDD *>(ptr);
+                break;
+            case Object::ObjTypes::O_GND:
+                getNumOfWires = static_cast<GND *>(ptr)->GetNumberOfWiresConnectedToPins();
+                if (getNumOfWires != 0)
+                {
+                    this->RemoveWiresConnectToObj(getNumOfWires);
+                }
+                delete static_cast<GND *>(ptr);
+                break;
+            case Object::ObjTypes::O_CLK:
+                getNumOfWires = static_cast<CLK *>(ptr)->GetNumberOfWiresConnectedToPins();
+                if (getNumOfWires != 0)
+                {
+                    this->RemoveWiresConnectToObj(getNumOfWires);
+                }
+                delete static_cast<CLK *>(ptr);
+                break;
+            case Object::ObjTypes::O_WIRE:
+                delete static_cast<Wire *>(ptr);
+                break;
+            default:
+                delete ptr;
+                break;
             }
 
             break;
@@ -342,35 +343,37 @@ void Simulator::RemoveObject()
     return;
 };
 
-void Simulator::RemoveWiresConnectToObj(int numOfWiresToBeDeleted) {
-    
+void Simulator::RemoveWiresConnectToObj(int numOfWiresToBeDeleted)
+{
 
-    Object* ptr = this->objects;
-    Object* prev = NULL;
+    Object *ptr = this->objects;
+    Object *prev = NULL;
 
-    if (ptr == NULL) {
+    if (ptr == NULL)
+    {
         cout << "There is no object" << endl;
         return;
     }
 
-    for (int i = 0; i < numOfWiresToBeDeleted; i++) {
-    
+    for (int i = 0; i < numOfWiresToBeDeleted; i++)
+    {
         while (ptr)
         {
-            if (ptr->selected) {
-
-                if (prev) {
-
+            if (ptr->selected)
+            {
+                if (prev)
+                {
                     prev->next = ptr->next;
                 }
-                else {
+                else
+                {
                     this->objects = ptr->next;
                 }
 
                 switch (ptr->GetTypeName())
                 {
                 case Object::ObjTypes::O_WIRE:
-                    delete static_cast<Wire*>(ptr);
+                    delete static_cast<Wire *>(ptr);
                     break;
                 default:
                     delete ptr;
@@ -385,7 +388,6 @@ void Simulator::RemoveWiresConnectToObj(int numOfWiresToBeDeleted) {
 
         ptr = this->objects;
         prev = NULL;
-
     }
     return;
 }
@@ -400,29 +402,27 @@ void Simulator::drawElements()
 
     while (ptr)
     {
-        if (ptr->selected && !ptr->locked) {
-            
-
-            if (dynamic_cast<Wire*>(ptr)) {
+        if (ptr->selected && !ptr->locked)
+        {
+            if (dynamic_cast<Wire *>(ptr))
+            {
                 // It is wire
-                static_cast<Wire*>(ptr)->line[0].color = sf::Color::Red;
-                static_cast<Wire*>(ptr)->line[1].color = sf::Color::Red;
+                static_cast<Wire*>(ptr)->SetColor(sf::Color::Red);
             }
-            else {
-            
+            else
+            {
                 ptr->sprite.setColor(sf::Color::Red);
             }
         }
-        else {
-
-            if (dynamic_cast<Wire*>(ptr)) {
+        else
+        {
+            if (dynamic_cast<Wire *>(ptr))
+            {
                 // It is wire
-
-                static_cast<Wire*>(ptr)->line[0].color = sf::Color::Yellow;
-                static_cast<Wire*>(ptr)->line[1].color = sf::Color::Yellow;
+                static_cast<Wire *>(ptr)->SetColor(sf::Color::Yellow);
             }
-            else {
-            
+            else
+            {
                 ptr->sprite.setColor(sf::Color(255, 255, 255));
             }
         }
@@ -433,11 +433,11 @@ void Simulator::drawElements()
             this->window->draw(ptr->sprite);
 
             static_cast<AndGate *>(ptr)->UpdatePosition();
-            static_cast<AndGate*>(ptr)->Simulate();
+            static_cast<AndGate *>(ptr)->Simulate();
 
-
-            for (int i = 0; i < static_cast<AndGate*>(ptr)->GetNumOfPins(); i++) {
-                this->window->draw(static_cast<AndGate*>(ptr)->DrawPins(i));
+            for (int i = 0; i < static_cast<AndGate *>(ptr)->GetNumOfPins(); i++)
+            {
+                this->window->draw(static_cast<AndGate *>(ptr)->DrawPins(i));
             }
 
             break;
@@ -445,11 +445,11 @@ void Simulator::drawElements()
             this->window->draw(ptr->sprite);
 
             static_cast<OrGate *>(ptr)->UpdatePosition();
-            static_cast<OrGate*>(ptr)->Simulate();
+            static_cast<OrGate *>(ptr)->Simulate();
 
-
-            for (int i = 0; i < static_cast<OrGate*>(ptr)->GetNumOfPins(); i++) {
-                this->window->draw(static_cast<OrGate*>(ptr)->DrawPins(i));
+            for (int i = 0; i < static_cast<OrGate *>(ptr)->GetNumOfPins(); i++)
+            {
+                this->window->draw(static_cast<OrGate *>(ptr)->DrawPins(i));
             }
 
             break;
@@ -457,90 +457,91 @@ void Simulator::drawElements()
             this->window->draw(ptr->sprite);
 
             static_cast<XorGate *>(ptr)->UpdatePosition();
-            static_cast<XorGate*>(ptr)->Simulate();
+            static_cast<XorGate *>(ptr)->Simulate();
 
-            
-            for (int i = 0; i < static_cast<XorGate*>(ptr)->GetNumOfPins(); i++) {
-                this->window->draw(static_cast<XorGate*>(ptr)->DrawPins(i));
+            for (int i = 0; i < static_cast<XorGate *>(ptr)->GetNumOfPins(); i++)
+            {
+                this->window->draw(static_cast<XorGate *>(ptr)->DrawPins(i));
             }
 
             break;
         case Object::ObjTypes::O_NOT:
             this->window->draw(ptr->sprite);
 
-            static_cast<NotGate*>(ptr)->UpdatePosition();
-            static_cast<NotGate*>(ptr)->Simulate();
+            static_cast<NotGate *>(ptr)->UpdatePosition();
+            static_cast<NotGate *>(ptr)->Simulate();
 
-
-            for (int i = 0; i < static_cast<NotGate*>(ptr)->GetNumOfPins(); i++) {
-                this->window->draw(static_cast<NotGate*>(ptr)->DrawPins(i));
+            for (int i = 0; i < static_cast<NotGate *>(ptr)->GetNumOfPins(); i++)
+            {
+                this->window->draw(static_cast<NotGate *>(ptr)->DrawPins(i));
             }
 
             break;
         case Object::ObjTypes::O_DFF:
             this->window->draw(ptr->sprite);
 
-            static_cast<DFFGate*>(ptr)->UpdatePosition();
-            static_cast<DFFGate*>(ptr)->Simulate();
+            static_cast<DFFGate *>(ptr)->UpdatePosition();
+            static_cast<DFFGate *>(ptr)->Simulate();
 
-
-            for (int i = 0; i < static_cast<DFFGate*>(ptr)->GetNumOfPins(); i++) {
-                this->window->draw(static_cast<DFFGate*>(ptr)->DrawPins(i));
+            for (int i = 0; i < static_cast<DFFGate *>(ptr)->GetNumOfPins(); i++)
+            {
+                this->window->draw(static_cast<DFFGate *>(ptr)->DrawPins(i));
             }
 
             break;
         case Object::ObjTypes::O_LED:
             this->window->draw(ptr->sprite);
 
-            static_cast<Led*>(ptr)->UpdatePosition();
-            static_cast<Led*>(ptr)->Simulate();
+            static_cast<Led *>(ptr)->UpdatePosition();
+            static_cast<Led *>(ptr)->Simulate();
 
-            for (int i = 0; i < static_cast<Led*>(ptr)->GetNumOfPins(); i++) {
-                this->window->draw(static_cast<Led*>(ptr)->DrawPins(i));
+            for (int i = 0; i < static_cast<Led *>(ptr)->GetNumOfPins(); i++)
+            {
+                this->window->draw(static_cast<Led *>(ptr)->DrawPins(i));
             }
 
             break;
         case Object::ObjTypes::O_VDD:
             this->window->draw(ptr->sprite);
 
-            static_cast<VDD*>(ptr)->UpdatePosition();
-            static_cast<VDD*>(ptr)->Simulate();
+            static_cast<VDD *>(ptr)->UpdatePosition();
+            static_cast<VDD *>(ptr)->Simulate();
 
-
-            for (int i = 0; i < static_cast<VDD*>(ptr)->GetNumOfPins(); i++) {
-                this->window->draw(static_cast<VDD*>(ptr)->DrawPins(i));
+            for (int i = 0; i < static_cast<VDD *>(ptr)->GetNumOfPins(); i++)
+            {
+                this->window->draw(static_cast<VDD *>(ptr)->DrawPins(i));
             }
 
             break;
         case Object::ObjTypes::O_GND:
             this->window->draw(ptr->sprite);
 
-            static_cast<GND*>(ptr)->UpdatePosition();
-            static_cast<GND*>(ptr)->Simulate();
+            static_cast<GND *>(ptr)->UpdatePosition();
+            static_cast<GND *>(ptr)->Simulate();
 
-
-            for (int i = 0; i < static_cast<GND*>(ptr)->GetNumOfPins(); i++) {
-                this->window->draw(static_cast<GND*>(ptr)->DrawPins(i));
+            for (int i = 0; i < static_cast<GND *>(ptr)->GetNumOfPins(); i++)
+            {
+                this->window->draw(static_cast<GND *>(ptr)->DrawPins(i));
             }
 
             break;
         case Object::ObjTypes::O_CLK:
             this->window->draw(ptr->sprite);
 
-            static_cast<CLK*>(ptr)->UpdatePosition();
-            static_cast<CLK*>(ptr)->Simulate();
+            static_cast<CLK *>(ptr)->UpdatePosition();
+            static_cast<CLK *>(ptr)->Simulate();
 
-
-            for (int i = 0; i < static_cast<CLK*>(ptr)->GetNumOfPins(); i++) {
-                this->window->draw(static_cast<CLK*>(ptr)->DrawPins(i));
+            for (int i = 0; i < static_cast<CLK *>(ptr)->GetNumOfPins(); i++)
+            {
+                this->window->draw(static_cast<CLK *>(ptr)->DrawPins(i));
             }
 
             break;
         case Object::ObjTypes::O_WIRE:
-            static_cast<Wire*>(ptr)->UpdatePosition();
-            static_cast<Wire*>(ptr)->Simulate();
+            static_cast<Wire *>(ptr)->UpdatePosition();
+            static_cast<Wire *>(ptr)->Simulate();
 
-            this->window->draw(static_cast<Wire*>(ptr)->GetLines(), 2, sf::Lines);
+            this->window->draw(static_cast<Wire *>(ptr)->GetLines(), 2, sf::Lines);
             break;
         default:
             break;

@@ -5,16 +5,13 @@
 
 using namespace std;
 
-void InitToolbar(Simulator* sim);
-
+void InitToolbar(Simulator *sim);
 
 int main()
 {
     // Initialize Simulator
     Simulator simulator;
     InitToolbar(&simulator);
-
-
 
     // run the program as long as the window is open
     while (simulator.isRunning())
@@ -27,18 +24,18 @@ int main()
     return 0;
 };
 
-void InitToolbar(Simulator* sim) {
-    AndGate* _toolbar_and = new AndGate();
-    OrGate* _toolbar_or = new OrGate();
-    XorGate* _toolbar_xor = new XorGate();
-    NotGate* _toolbar_not = new NotGate();
-    DFFGate* _toolbar_dff = new DFFGate();
+void InitToolbar(Simulator *sim)
+{
+    AndGate *_toolbar_and = new AndGate();
+    OrGate *_toolbar_or = new OrGate();
+    XorGate *_toolbar_xor = new XorGate();
+    NotGate *_toolbar_not = new NotGate();
+    DFFGate *_toolbar_dff = new DFFGate();
 
-    Led* _toolbar_led = new Led();
-    VDD* _toolbar_vdd = new VDD();
-    GND* _toolbar_gnd = new GND();
-    CLK* _toolbar_clk = new CLK();
-
+    Led *_toolbar_led = new Led();
+    VDD *_toolbar_vdd = new VDD();
+    GND *_toolbar_gnd = new GND();
+    CLK *_toolbar_clk = new CLK();
 
     _toolbar_and->sprite.setPosition(sf::Vector2f(20.f, 20.f));
     _toolbar_and->locked = true;
