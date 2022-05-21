@@ -49,7 +49,7 @@ void Wire::UpdatePosition() {
     if (complete) {
         this->line[0].position = this->pins[0]->pos;
         this->line[1].position = this->pins[1]->pos;
-        cout << this->pins[1] << endl;
+        //cout << this->pins[1] << endl;
     }
 };
 
@@ -58,6 +58,48 @@ void Wire::Simulate() {
         this->pins[1]->state = this->pins[0]->state;
     }
 };
+
+float Wire::pDistance(float mouse_x, float mouse_y) {
+    
+    float x1 = this->line[0].position.x;
+    float y1 = this->line[0].position.y;
+    float x2 = this->line[1].position.x;
+    float y2 = this->line[1].position.y;
+
+    float A = mouse_x - x1;
+    float B = mouse_y - y1;
+    float C = x2 - x1;
+    float D = y2 - y1;
+
+    float dot = A * C + B * D;
+    float len_sq = C * C + D * D;
+
+    float param = -1;
+
+    if (len_sq != 0)
+        param = dot / len_sq;
+
+    float xx, yy;
+
+    if (param < 0) {
+
+        xx = x1;
+        yy = y1;
+    }
+    else if (param > 1) {
+        xx = x2;
+        yy = y2;
+    }
+    else {
+        xx = x1 + param * C;
+        yy = y1 + param * D;
+    }
+
+    float dx = mouse_x - xx;
+    float dy = mouse_y - yy;
+
+    return sqrt(dx * dx + dy * dy);
+}
 
 
 

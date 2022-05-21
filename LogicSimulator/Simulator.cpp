@@ -5,8 +5,8 @@
 #include "Simulator.hpp"
 using namespace std;
 
-#define WIN_H 1000
-#define WIN_W 1200
+#define WIN_H 1800
+#define WIN_W 2400
 
 Simulator::Simulator()
 {
@@ -243,9 +243,22 @@ void Simulator::pollEvents()
                 }
             }
             else if (dynamic_cast<Wire*>(ptr) != NULL) {
-                cout << "THERE IS ANY WIRE " << endl;
 
-                // LOOP THROUGH THE WIRES AND FIND THE SELECTED WIRE
+                Wire* wire = static_cast<Wire*>(ptr);
+
+
+                if (wire->pDistance(event.mouseButton.x, event.mouseButton.y) <= 10) {
+
+                    wire->line[0].color = sf::Color::Red;
+                    wire->line[1].color = sf::Color::Red;
+
+                    ptr->selected = true;
+                }
+                else {
+                    wire->line[0].color = sf::Color::Yellow;
+                    wire->line[1].color = sf::Color::Yellow;
+                    ptr->selected = false;
+                }
             }
             else
             {

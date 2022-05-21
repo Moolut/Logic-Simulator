@@ -105,6 +105,8 @@ public:
 
     ObjTypes GetTypeName() const;
 
+    float pDistance(float mouse_x, float mouse_y);
+
     void Simulate();
 };
 
