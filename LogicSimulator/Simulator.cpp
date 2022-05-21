@@ -107,7 +107,6 @@ void Simulator::pollEvents()
     dragging = (this->holding && moving);
 
     if (cancel) {
-        cout << "dropped" << endl;
         if (drawing && drawing_wire != nullptr && drawing_wire->complete == false) {
             
             this->drawing_wire->selected = true;
@@ -147,98 +146,39 @@ void Simulator::pollEvents()
                 {
                     ptr->selected = true;
 
-                    Pin *pins = new Pin[3];
-                    int numOfPins;
-                    switch (ptr->GetTypeName())
-                    {
-                    case Object::ObjTypes::O_AND:
-                        pins = static_cast<AndGate *>(ptr)->GetPins();
-                        numOfPins = static_cast<AndGate *>(ptr)->GetNumOfPins();
-                        break;
-                    case Object::ObjTypes::O_NOT:
-                        pins = static_cast<NotGate*>(ptr)->GetPins();
-                        numOfPins = static_cast<NotGate*>(ptr)->GetNumOfPins();
-                        break;
-                    case Object::ObjTypes::O_OR:
-                        pins = static_cast<OrGate *>(ptr)->GetPins();
-                        numOfPins = static_cast<OrGate*>(ptr)->GetNumOfPins();
+                    Pin* clicked_pin = nullptr;
 
-                        break;
-                    case Object::ObjTypes::O_XOR:
-                        pins = static_cast<XorGate *>(ptr)->GetPins();
-                        numOfPins = static_cast<XorGate*>(ptr)->GetNumOfPins();
+                    clicked_pin = dynamic_cast<LogicElement*>(ptr)->GetClickedPin(event.mouseButton.x,event.mouseButton.y);
 
-                        break;
-                    case Object::ObjTypes::O_DFF:
-                        pins = static_cast<DFFGate*>(ptr)->GetPins();
-                        numOfPins = static_cast<DFFGate*>(ptr)->GetNumOfPins();
-
-                        break;
-                    case Object::ObjTypes::O_LED:
-                        pins = static_cast<Led*>(ptr)->GetPins();
-                        numOfPins = static_cast<Led*>(ptr)->GetNumOfPins();
-
-                        break;
-                    case Object::ObjTypes::O_VDD:
-                        pins = static_cast<VDD*>(ptr)->GetPins();
-                        numOfPins = static_cast<VDD*>(ptr)->GetNumOfPins();
-                        break;
-                    case Object::ObjTypes::O_GND:
-                        pins = static_cast<GND*>(ptr)->GetPins();
-                        numOfPins = static_cast<GND*>(ptr)->GetNumOfPins();
-                        break;
-                    case Object::ObjTypes::O_CLK:
-                        pins = static_cast<CLK*>(ptr)->GetPins();
-                        numOfPins = static_cast<CLK*>(ptr)->GetNumOfPins();
-                        break;
-                    default:
-                        break;
-                    }
+                   
 
                     this->focus = &(ptr->sprite);
-                    std::clog << this->focus << std::endl;
 
-                    //cout << "MOUSE POSITION x: " << event.mouseButton.x << " y: " << event.mouseButton.y << endl;
+                    // IF CLICKED ON ANY PIN OF THE CLICKED OBJ
+                    if (clicked_pin) {
+                        ptr->selected = false;
 
-                    for (int i = 0; i < numOfPins; i++)
-                    {
-                        //cout << "PIN " << pins[i].index << " LOCATION x: " << pins[i].pos.x << " y: " << pins[i].pos.y << endl;
-
-                        float pin_x_max = pins[i].pos.x + 10.f;
-                        float pin_x_min = pins[i].pos.x - 10.f;
-
-                        float pin_y_max = pins[i].pos.y + 10.f;
-                        float pin_y_min = pins[i].pos.y - 10.f;
-
-                        if (
-                            (event.mouseButton.x <= pin_x_max && event.mouseButton.x >= pin_x_min) &&
-                            (event.mouseButton.y <= pin_y_max && event.mouseButton.y >= pin_y_min))
-                        {
-                            //cout << "CLICKED ON PIN " << pins[i].index << endl;
-                            ptr->selected = false;
-
-                            if (drawing && drawing_wire != nullptr) {
-                                // FINISH TO DRAW WIRE
-                                if (pins[i].type != Pin::pinType::OUTPUT) {
-                                    drawing_wire->ConnectPin(&pins[i]);
-                                    pins[i].wires[0] = this->drawing_wire;
-                                    this->drawing_wire = nullptr;
-                                    this->drawing = false;
-                                }
+                        if (drawing && drawing_wire != nullptr) {
+                            // FINISH TO DRAW WIRE
+                            if (clicked_pin->type != Pin::pinType::OUTPUT) {
+                                drawing_wire->ConnectPin(clicked_pin);
+                                clicked_pin->wires[clicked_pin->numConnections] = this->drawing_wire;
+                                clicked_pin->numConnections += 1;
+                                this->drawing_wire = nullptr;
+                                this->drawing = false;
                             }
-                            else {
-                                // START TO DRAW WIRE
-                                Wire* wire = new Wire(pins[i].pos, &pins[i]);
-                                pins[i].wires[0] = wire;
-                                this->AddObject(wire);
-                                this->drawing_wire = wire;
-                                this->drawing = true;
-                            } 
-                        }                       
+                        }
                         else {
-                            cout << "NOT CLICKED ON PIN " << endl;
+                            // START TO DRAW WIRE
+                            Wire* wire = new Wire(clicked_pin->pos, clicked_pin);
+                            clicked_pin->wires[clicked_pin->numConnections] = wire;
+                            clicked_pin->numConnections += 1;
+                            this->AddObject(wire);
+                            this->drawing_wire = wire;
+                            this->drawing = true;
                         }
                     }
+
 
                 }
             }
@@ -246,26 +186,16 @@ void Simulator::pollEvents()
 
                 Wire* wire = static_cast<Wire*>(ptr);
 
-
-                if (wire->pDistance(event.mouseButton.x, event.mouseButton.y) <= 10) {
-
-                    wire->line[0].color = sf::Color::Red;
-                    wire->line[1].color = sf::Color::Red;
-
+                if (wire->pDistance(event.mouseButton.x, event.mouseButton.y))
                     ptr->selected = true;
-                }
-                else {
-                    wire->line[0].color = sf::Color::Yellow;
-                    wire->line[1].color = sf::Color::Yellow;
+                else 
                     ptr->selected = false;
-                }
             }
             else
             {
                 ptr->selected = false;
                 cout << "Not Clicked on obj" << endl;
             }
-
             ptr = ptr->next;
         }
     }
@@ -301,7 +231,6 @@ void Simulator::render()
 
 void Simulator::AddObject(Object *obj)
 {
-    cout << "Adding new object" << endl;
 
     obj->next = objects;
     objects = obj;
@@ -312,10 +241,12 @@ void Simulator::RemoveObject()
     Object* ptr = this->objects;
     Object* prev = NULL;
 
-    if (ptr == NULL)
+    if (ptr == NULL) {
         cout << "There is no object" << endl;
+        return;
+    }
 
-
+    int getNumOfWires = 0;
     while (ptr)
     {
         if (ptr->selected) {
@@ -330,39 +261,76 @@ void Simulator::RemoveObject()
 
             switch (ptr->GetTypeName())
             {
-            case Object::ObjTypes::O_AND:
-                delete static_cast<AndGate*>(ptr);
-                break;
-            case Object::ObjTypes::O_OR:
-                delete static_cast<OrGate*>(ptr);
-                break;
-            case Object::ObjTypes::O_XOR:
-                delete static_cast<XorGate*>(ptr);
-                break;
-            case Object::ObjTypes::O_NOT:
-                delete static_cast<NotGate*>(ptr);
-                break;
-            case Object::ObjTypes::O_DFF:
-                delete static_cast<DFFGate*>(ptr);
-                break;
-            case Object::ObjTypes::O_LED:
-                delete static_cast<Led*>(ptr);
-                break;
-            case Object::ObjTypes::O_VDD:
-                delete static_cast<VDD*>(ptr);
-                break;
-            case Object::ObjTypes::O_GND:
-                delete static_cast<GND*>(ptr);
-                break;
-            case Object::ObjTypes::O_CLK:
-                delete static_cast<CLK*>(ptr);
-                break;
-            case Object::ObjTypes::O_WIRE:
-                delete static_cast<Wire*>(ptr);
-                break;
-            default:
-                delete ptr;
-                break;
+                case Object::ObjTypes::O_AND:
+
+                    getNumOfWires = static_cast<AndGate*>(ptr)->GetNumberOfWiresConnectedToPins();
+                    if (getNumOfWires != 0) {
+                        this->RemoveWiresConnectToObj(getNumOfWires);
+                    }
+                    delete static_cast<AndGate*>(ptr);
+                    break;
+                case Object::ObjTypes::O_OR:
+                    getNumOfWires = static_cast<OrGate*>(ptr)->GetNumberOfWiresConnectedToPins();
+                    if (getNumOfWires != 0) {
+                        this->RemoveWiresConnectToObj(getNumOfWires);
+                    }
+                    delete static_cast<OrGate*>(ptr);
+                    break;
+                case Object::ObjTypes::O_XOR:
+                    getNumOfWires = static_cast<XorGate*>(ptr)->GetNumberOfWiresConnectedToPins();
+                    if (getNumOfWires != 0) {
+                        this->RemoveWiresConnectToObj(getNumOfWires);
+                    }
+                    delete static_cast<XorGate*>(ptr);
+                    break;
+                case Object::ObjTypes::O_NOT:
+                    getNumOfWires = static_cast<NotGate*>(ptr)->GetNumberOfWiresConnectedToPins();
+                    if (getNumOfWires != 0) {
+                        this->RemoveWiresConnectToObj(getNumOfWires);
+                    }
+                    delete static_cast<NotGate*>(ptr);
+                    break;
+                case Object::ObjTypes::O_DFF:
+                    getNumOfWires = static_cast<DFFGate*>(ptr)->GetNumberOfWiresConnectedToPins();
+                    if (getNumOfWires != 0) {
+                        this->RemoveWiresConnectToObj(getNumOfWires);
+                    }
+                    delete static_cast<DFFGate*>(ptr);
+                    break;
+                case Object::ObjTypes::O_LED:
+                    getNumOfWires = static_cast<Led*>(ptr)->GetNumberOfWiresConnectedToPins();
+                    if (getNumOfWires != 0) {
+                        this->RemoveWiresConnectToObj(getNumOfWires);
+                    }
+                    delete static_cast<Led*>(ptr);
+                    break;
+                case Object::ObjTypes::O_VDD:
+                    getNumOfWires = static_cast<VDD*>(ptr)->GetNumberOfWiresConnectedToPins();
+                    if (getNumOfWires != 0) {
+                        this->RemoveWiresConnectToObj(getNumOfWires);
+                    }
+                    delete static_cast<VDD*>(ptr);
+                    break;
+                case Object::ObjTypes::O_GND:
+                    getNumOfWires = static_cast<GND*>(ptr)->GetNumberOfWiresConnectedToPins();
+                    if (getNumOfWires != 0) {
+                        this->RemoveWiresConnectToObj(getNumOfWires);
+                    }
+                    delete static_cast<GND*>(ptr);
+                    break;
+                case Object::ObjTypes::O_CLK:
+                    getNumOfWires = static_cast<CLK*>(ptr)->GetNumberOfWiresConnectedToPins();
+                    if (getNumOfWires != 0) {
+                        this->RemoveWiresConnectToObj(getNumOfWires);
+                    }
+                    delete static_cast<CLK*>(ptr);
+                    break;
+                case Object::ObjTypes::O_WIRE:
+                    delete static_cast<Wire*>(ptr);
+                    break;
+                default:
+                    delete ptr;
+                    break;
             }
 
             break;
@@ -370,7 +338,57 @@ void Simulator::RemoveObject()
         prev = ptr;
         ptr = ptr->next;
     }
+
+    return;
 };
+
+void Simulator::RemoveWiresConnectToObj(int numOfWiresToBeDeleted) {
+    
+
+    Object* ptr = this->objects;
+    Object* prev = NULL;
+
+    if (ptr == NULL) {
+        cout << "There is no object" << endl;
+        return;
+    }
+
+    for (int i = 0; i < numOfWiresToBeDeleted; i++) {
+    
+        while (ptr)
+        {
+            if (ptr->selected) {
+
+                if (prev) {
+
+                    prev->next = ptr->next;
+                }
+                else {
+                    this->objects = ptr->next;
+                }
+
+                switch (ptr->GetTypeName())
+                {
+                case Object::ObjTypes::O_WIRE:
+                    delete static_cast<Wire*>(ptr);
+                    break;
+                default:
+                    delete ptr;
+                    break;
+                }
+
+                break;
+            }
+            prev = ptr;
+            ptr = ptr->next;
+        }
+
+        ptr = this->objects;
+        prev = NULL;
+
+    }
+    return;
+}
 
 void Simulator::drawElements()
 {
@@ -384,11 +402,29 @@ void Simulator::drawElements()
     {
         if (ptr->selected && !ptr->locked) {
             
-            ptr->sprite.setColor(sf::Color::Red);
+
+            if (dynamic_cast<Wire*>(ptr)) {
+                // It is wire
+                static_cast<Wire*>(ptr)->line[0].color = sf::Color::Red;
+                static_cast<Wire*>(ptr)->line[1].color = sf::Color::Red;
+            }
+            else {
             
+                ptr->sprite.setColor(sf::Color::Red);
+            }
         }
         else {
-            ptr->sprite.setColor(sf::Color(255, 255, 255));
+
+            if (dynamic_cast<Wire*>(ptr)) {
+                // It is wire
+
+                static_cast<Wire*>(ptr)->line[0].color = sf::Color::Yellow;
+                static_cast<Wire*>(ptr)->line[1].color = sf::Color::Yellow;
+            }
+            else {
+            
+                ptr->sprite.setColor(sf::Color(255, 255, 255));
+            }
         }
 
         switch (ptr->GetTypeName())

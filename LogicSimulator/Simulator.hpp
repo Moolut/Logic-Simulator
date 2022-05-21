@@ -30,5 +30,6 @@ public:
     void render();
     void AddObject(Object *obj);
     void RemoveObject();
+    void RemoveWiresConnectToObj(int numOfWiresToBeDeleted);
     void drawElements();
 };

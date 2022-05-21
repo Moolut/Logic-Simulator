@@ -7,7 +7,6 @@
 
 Object::Object(const Object &old_obj)
 {
-    cout << "Copy constructor " << endl;
     this->next = old_obj.next;
     this->locked = false;
     this->window = old_obj.window;
@@ -19,24 +18,49 @@ Object::Object(const Object &old_obj)
     this->selected = old_obj.selected;
 };
 
+Object::~Object() {
+    
+    cout << "Object Deconstructor" << endl;
+}
+
+void Object::SetSelected(bool isSelected) {
+
+    this->selected = isSelected;
+};
+
+
+
 Wire::Wire(sf::Vector2f start_point, Pin* start_pin) {
     this->objectType = O_WIRE;
     this->next = NULL;
 
     this->line[0].position = start_point;
-    this->line[0].color = sf::Color::Red;
+    this->line[0].color = sf::Color::Yellow;
 
     this->pins[0] = start_pin;
 };
 
+Wire::~Wire() {
+    
+    this->pins[0]->state = Pin::pinState::HIGHZ;
+    this->pins[0]->numConnections -= 1;
+
+    if (this->pins[1]) {
+        this->pins[1]->state = Pin::pinState::HIGHZ;
+        this->pins[1]->numConnections -= 1;
+
+    }
+
+}
+
 void Wire::UpdateEndPoint(sf::Vector2f end_point) {
     this->line[1].position = end_point;
-    this->line[1].color = sf::Color::Red;
+    this->line[1].color = sf::Color::Yellow;
 }
 
 void Wire::ConnectPin(Pin* end_pin) {
     this->line[1].position = end_pin->pos;
-    this->line[1].color = sf::Color::Red;
+    this->line[1].color = sf::Color::Yellow;
 
     this->pins[1] = end_pin;
     this->complete = true;
@@ -59,7 +83,7 @@ void Wire::Simulate() {
     }
 };
 
-float Wire::pDistance(float mouse_x, float mouse_y) {
+bool Wire::pDistance(float mouse_x, float mouse_y) {
     
     float x1 = this->line[0].position.x;
     float y1 = this->line[0].position.y;
@@ -98,7 +122,7 @@ float Wire::pDistance(float mouse_x, float mouse_y) {
     float dx = mouse_x - xx;
     float dy = mouse_y - yy;
 
-    return sqrt(dx * dx + dy * dy);
+    return sqrt(dx * dx + dy * dy) <= 10;
 }
 
 
@@ -142,7 +166,13 @@ AndGate::AndGate()
     this->sprite.setTexture(this->textures[0]);
 };
 
-AndGate::~AndGate(){};
+AndGate::~AndGate(){
+    
+    cout << "AND GATE DECONSTRUCTOR" << endl;
+
+
+   
+};
 
 Object *AndGate::Clone() const { return new AndGate(*this); };
 
@@ -157,6 +187,49 @@ void AndGate::Simulate() {
         pins[2].state = Pin::pinState::HIGHZ;
     }
 };
+
+Pin* AndGate::GetClickedPin(float mouse_x_pos, float mouse_y_pos) {
+    
+    Pin* clicked_pin = nullptr;
+    for (int i = 0; i < this->numPins; i++) {
+        
+        float pin_x_max = this->pins[i].pos.x + 10.f;
+        float pin_x_min = this->pins[i].pos.x - 10.f;
+
+        float pin_y_max = this->pins[i].pos.y + 10.f;
+        float pin_y_min = this->pins[i].pos.y - 10.f;
+
+        if (
+            (mouse_x_pos <= pin_x_max && mouse_x_pos >= pin_x_min) &&
+            (mouse_y_pos <= pin_y_max && mouse_y_pos >= pin_y_min))
+        {
+            clicked_pin = &this->pins[i];
+        }
+    }
+    return clicked_pin;
+
+}
+
+int AndGate::GetNumberOfWiresConnectedToPins() {
+    
+    int count = 0;
+
+    for (int i = 0; i < this->numPins; i++) {
+
+        for (int j = 0; j < this->pins[i].numConnections; j++) {
+
+            if (this->pins[i].wires[j]) {
+
+                this->pins[i].wires[j]->SetSelected(true);
+
+                count++;
+
+            }
+        }
+    }
+
+    return count;
+}
 
 
 OrGate::OrGate()
@@ -204,6 +277,49 @@ void OrGate::Simulate() {
         pins[2].state = Pin::pinState::HIGHZ;
     }
 };
+
+
+Pin* OrGate::GetClickedPin(float mouse_x_pos, float mouse_y_pos) {
+
+    Pin* clicked_pin = nullptr;
+    for (int i = 0; i < this->numPins; i++) {
+
+        float pin_x_max = this->pins[i].pos.x + 10.f;
+        float pin_x_min = this->pins[i].pos.x - 10.f;
+
+        float pin_y_max = this->pins[i].pos.y + 10.f;
+        float pin_y_min = this->pins[i].pos.y - 10.f;
+
+        if (
+            (mouse_x_pos <= pin_x_max && mouse_x_pos >= pin_x_min) &&
+            (mouse_y_pos <= pin_y_max && mouse_y_pos >= pin_y_min))
+        {
+            clicked_pin = &this->pins[i];
+        }
+    }
+    return clicked_pin;
+}
+
+int OrGate::GetNumberOfWiresConnectedToPins() {
+
+    int count = 0;
+
+    for (int i = 0; i < this->numPins; i++) {
+
+        for (int j = 0; j < this->pins[i].numConnections; j++) {
+
+            if (this->pins[i].wires[j]) {
+
+                this->pins[i].wires[j]->SetSelected(true);
+
+                count++;
+
+            }
+        }
+    }
+
+    return count;
+}
 
 
 XorGate::XorGate()
@@ -254,6 +370,49 @@ void XorGate::Simulate() {
     }
 };
 
+
+Pin* XorGate::GetClickedPin(float mouse_x_pos, float mouse_y_pos) {
+
+    Pin* clicked_pin = nullptr;
+    for (int i = 0; i < this->numPins; i++) {
+
+        float pin_x_max = this->pins[i].pos.x + 10.f;
+        float pin_x_min = this->pins[i].pos.x - 10.f;
+
+        float pin_y_max = this->pins[i].pos.y + 10.f;
+        float pin_y_min = this->pins[i].pos.y - 10.f;
+
+        if (
+            (mouse_x_pos <= pin_x_max && mouse_x_pos >= pin_x_min) &&
+            (mouse_y_pos <= pin_y_max && mouse_y_pos >= pin_y_min))
+        {
+            clicked_pin = &this->pins[i];
+        }
+    }
+    return clicked_pin;
+}
+
+int XorGate::GetNumberOfWiresConnectedToPins() {
+
+    int count = 0;
+
+    for (int i = 0; i < this->numPins; i++) {
+
+        for (int j = 0; j < this->pins[i].numConnections; j++) {
+
+            if (this->pins[i].wires[j]) {
+
+                this->pins[i].wires[j]->SetSelected(true);
+
+                count++;
+
+            }
+        }
+    }
+
+    return count;
+}
+
 NotGate::NotGate()
 {
 
@@ -292,6 +451,49 @@ void NotGate::Simulate() {
         pins[1].state = Pin::pinState::HIGH;
     }
 };
+
+
+Pin* NotGate::GetClickedPin(float mouse_x_pos, float mouse_y_pos) {
+
+    Pin* clicked_pin = nullptr;
+    for (int i = 0; i < this->numPins; i++) {
+
+        float pin_x_max = this->pins[i].pos.x + 10.f;
+        float pin_x_min = this->pins[i].pos.x - 10.f;
+
+        float pin_y_max = this->pins[i].pos.y + 10.f;
+        float pin_y_min = this->pins[i].pos.y - 10.f;
+
+        if (
+            (mouse_x_pos <= pin_x_max && mouse_x_pos >= pin_x_min) &&
+            (mouse_y_pos <= pin_y_max && mouse_y_pos >= pin_y_min))
+        {
+            clicked_pin = &this->pins[i];
+        }
+    }
+    return clicked_pin;
+}
+
+int NotGate::GetNumberOfWiresConnectedToPins() {
+
+    int count = 0;
+
+    for (int i = 0; i < this->numPins; i++) {
+
+        for (int j = 0; j < this->pins[i].numConnections; j++) {
+
+            if (this->pins[i].wires[j]) {
+
+                this->pins[i].wires[j]->SetSelected(true);
+
+                count++;
+
+            }
+        }
+    }
+
+    return count;
+}
 
 DFFGate::DFFGate()
 {
@@ -357,6 +559,49 @@ void DFFGate::Simulate() {
     }
 };
 
+
+Pin* DFFGate::GetClickedPin(float mouse_x_pos, float mouse_y_pos) {
+
+    Pin* clicked_pin = nullptr;
+    for (int i = 0; i < this->numPins; i++) {
+
+        float pin_x_max = this->pins[i].pos.x + 10.f;
+        float pin_x_min = this->pins[i].pos.x - 10.f;
+
+        float pin_y_max = this->pins[i].pos.y + 10.f;
+        float pin_y_min = this->pins[i].pos.y - 10.f;
+
+        if (
+            (mouse_x_pos <= pin_x_max && mouse_x_pos >= pin_x_min) &&
+            (mouse_y_pos <= pin_y_max && mouse_y_pos >= pin_y_min))
+        {
+            clicked_pin = &this->pins[i];
+        }
+    }
+    return clicked_pin;
+}
+
+int DFFGate::GetNumberOfWiresConnectedToPins() {
+
+    int count = 0;
+
+    for (int i = 0; i < this->numPins; i++) {
+
+        for (int j = 0; j < this->pins[i].numConnections; j++) {
+
+            if (this->pins[i].wires[j]) {
+
+                this->pins[i].wires[j]->SetSelected(true);
+
+                count++;
+
+            }
+        }
+    }
+
+    return count;
+}
+
 Led::Led()
 {
 
@@ -398,6 +643,48 @@ void Led::Simulate() {
 };
 
 
+Pin* Led::GetClickedPin(float mouse_x_pos, float mouse_y_pos) {
+
+    Pin* clicked_pin = nullptr;
+    for (int i = 0; i < this->numPins; i++) {
+
+        float pin_x_max = this->pins[i].pos.x + 10.f;
+        float pin_x_min = this->pins[i].pos.x - 10.f;
+
+        float pin_y_max = this->pins[i].pos.y + 10.f;
+        float pin_y_min = this->pins[i].pos.y - 10.f;
+
+        if (
+            (mouse_x_pos <= pin_x_max && mouse_x_pos >= pin_x_min) &&
+            (mouse_y_pos <= pin_y_max && mouse_y_pos >= pin_y_min))
+        {
+            clicked_pin = &this->pins[i];
+        }
+    }
+    return clicked_pin;
+}
+
+int Led::GetNumberOfWiresConnectedToPins() {
+
+    int count = 0;
+
+    for (int i = 0; i < this->numPins; i++) {
+
+        for (int j = 0; j < this->pins[i].numConnections; j++) {
+
+            if (this->pins[i].wires[j]) {
+
+                this->pins[i].wires[j]->SetSelected(true);
+
+                count++;
+
+            }
+        }
+    }
+
+    return count;
+}
+
 
 VDD::VDD()
 {
@@ -428,6 +715,49 @@ void VDD::Simulate() {
     pins[0].state = Pin::pinState::HIGH;
 };
 
+
+Pin* VDD::GetClickedPin(float mouse_x_pos, float mouse_y_pos) {
+
+    Pin* clicked_pin = nullptr;
+    for (int i = 0; i < this->numPins; i++) {
+
+        float pin_x_max = this->pins[i].pos.x + 10.f;
+        float pin_x_min = this->pins[i].pos.x - 10.f;
+
+        float pin_y_max = this->pins[i].pos.y + 10.f;
+        float pin_y_min = this->pins[i].pos.y - 10.f;
+
+        if (
+            (mouse_x_pos <= pin_x_max && mouse_x_pos >= pin_x_min) &&
+            (mouse_y_pos <= pin_y_max && mouse_y_pos >= pin_y_min))
+        {
+            clicked_pin = &this->pins[i];
+        }
+    }
+    return clicked_pin;
+}
+
+int VDD::GetNumberOfWiresConnectedToPins() {
+
+    int count = 0;
+
+    for (int i = 0; i < this->numPins; i++) {
+
+        for (int j = 0; j < this->pins[i].numConnections; j++) {
+
+            if (this->pins[i].wires[j]) {
+
+                this->pins[i].wires[j]->SetSelected(true);
+
+                count++;
+
+            }
+        }
+    }
+
+    return count;
+}
+
 GND::GND()
 {
 
@@ -457,6 +787,48 @@ void GND::Simulate() {
     pins[0].state = Pin::pinState::LOW;
 };
 
+
+Pin* GND::GetClickedPin(float mouse_x_pos, float mouse_y_pos) {
+
+    Pin* clicked_pin = nullptr;
+    for (int i = 0; i < this->numPins; i++) {
+
+        float pin_x_max = this->pins[i].pos.x + 10.f;
+        float pin_x_min = this->pins[i].pos.x - 10.f;
+
+        float pin_y_max = this->pins[i].pos.y + 10.f;
+        float pin_y_min = this->pins[i].pos.y - 10.f;
+
+        if (
+            (mouse_x_pos <= pin_x_max && mouse_x_pos >= pin_x_min) &&
+            (mouse_y_pos <= pin_y_max && mouse_y_pos >= pin_y_min))
+        {
+            clicked_pin = &this->pins[i];
+        }
+    }
+    return clicked_pin;
+}
+
+int GND::GetNumberOfWiresConnectedToPins() {
+
+    int count = 0;
+
+    for (int i = 0; i < this->numPins; i++) {
+
+        for (int j = 0; j < this->pins[i].numConnections; j++) {
+
+            if (this->pins[i].wires[j]) {
+
+                this->pins[i].wires[j]->SetSelected(true);
+
+                count++;
+
+            }
+        }
+    }
+
+    return count;
+}
 
 CLK::CLK()
 {
@@ -493,6 +865,49 @@ void CLK::Simulate() {
     this->count += 1;
     pins[0].state = this->count%2 == 0 ? Pin::pinState::LOW : Pin::pinState::HIGH;
 };
+
+
+Pin* CLK::GetClickedPin(float mouse_x_pos, float mouse_y_pos) {
+
+    Pin* clicked_pin = nullptr;
+    for (int i = 0; i < this->numPins; i++) {
+
+        float pin_x_max = this->pins[i].pos.x + 10.f;
+        float pin_x_min = this->pins[i].pos.x - 10.f;
+
+        float pin_y_max = this->pins[i].pos.y + 10.f;
+        float pin_y_min = this->pins[i].pos.y - 10.f;
+
+        if (
+            (mouse_x_pos <= pin_x_max && mouse_x_pos >= pin_x_min) &&
+            (mouse_y_pos <= pin_y_max && mouse_y_pos >= pin_y_min))
+        {
+            clicked_pin = &this->pins[i];
+        }
+    }
+    return clicked_pin;
+}
+
+int CLK::GetNumberOfWiresConnectedToPins() {
+
+    int count = 0;
+
+    for (int i = 0; i < this->numPins; i++) {
+
+        for (int j = 0; j < this->pins[i].numConnections; j++) {
+
+            if (this->pins[i].wires[j]) {
+
+                this->pins[i].wires[j]->SetSelected(true);
+
+                count++;
+
+            }
+        }
+    }
+
+    return count;
+}
 
 Object::ObjTypes LogicElement::GetTypeName() const
 {
