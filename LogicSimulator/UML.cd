@@ -1,0 +1,121 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="Object">
+    <Position X="10.5" Y="0.5" Width="1.5" />
+    <NestedTypes>
+      <Enum Name="Object::ObjTypes" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Objects.hpp</NewMemberFileName>
+        </TypeIdentifier>
+      </Enum>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>AAEQCACAAUAAMAAgAAABAAAAABAAAgAMAIAAAgIAABA=</HashCode>
+      <FileName>Objects.hpp</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Pin">
+    <Position X="18" Y="0.5" Width="1.5" />
+    <NestedTypes>
+      <Enum Name="Pin::pinType" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Objects.hpp</NewMemberFileName>
+        </TypeIdentifier>
+      </Enum>
+      <Enum Name="Pin::pinState" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Objects.hpp</NewMemberFileName>
+        </TypeIdentifier>
+      </Enum>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>AAAABkAAACAAAAAAAAACAIIAgAARQAGEQAAFARABAEA=</HashCode>
+      <FileName>Objects.hpp</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Wire">
+    <Position X="7.5" Y="0.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAEAAAAAAgAAQCAAAAAJAAQAABAAIAAAAAwIAAEAABA=</HashCode>
+      <FileName>Objects.hpp</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="LogicElement">
+    <Position X="14.75" Y="1" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAEAAAAAAAAAICAYAAAAAAQABAAgAAAAIAAAAAAACgA=</HashCode>
+      <FileName>Objects.hpp</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="AndGate">
+    <Position X="2.5" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAIAAABAAAAAAAAAAAAAAAAAAABghA=</HashCode>
+      <FileName>Objects.hpp</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="OrGate">
+    <Position X="9.25" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAQAAAAIAAABAAAAAAAAAAAAAAABAAAAAhA=</HashCode>
+      <FileName>Objects.hpp</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="XorGate">
+    <Position X="13.75" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAABAAIAAABAAAAAAAAAAAAAAEAAAAAAhA=</HashCode>
+      <FileName>Objects.hpp</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="NotGate">
+    <Position X="18.25" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAQAIAAABAAAAAAAAAAAAAAAAAAEAAhA=</HashCode>
+      <FileName>Objects.hpp</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DFFGate">
+    <Position X="4.75" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAIAAABAAABAAAAAAAAACAAAAAAAhA=</HashCode>
+      <FileName>Objects.hpp</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Led">
+    <Position X="11.5" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAIAIAAABAAAAAAAAABAAAAAAAAAAAhA=</HashCode>
+      <FileName>Objects.hpp</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="VDD">
+    <Position X="16" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAQBIAAABAAAAAAAAAAAAAAAAAAAAAhA=</HashCode>
+      <FileName>Objects.hpp</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="GND">
+    <Position X="20.5" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAIAAABAAAAAAIAAgAAAAAAAAAAAhA=</HashCode>
+      <FileName>Objects.hpp</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CLK">
+    <Position X="7" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAgAAAAhAAAAAAAIBAABAAAAAAAAAAAAAAAEAAAAAhA=</HashCode>
+      <FileName>Objects.hpp</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Simulator">
+    <Position X="19.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAACAEgAAAAABCECAAAQQAFQAIEAIIgAAgAAA0AAA=</HashCode>
+      <FileName>Simulator.hpp</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>
