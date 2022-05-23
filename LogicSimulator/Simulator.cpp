@@ -156,11 +156,11 @@ void Simulator::pollEvents()
                         if (drawing && drawing_wire != nullptr)
                         {
                             // FINISH TO DRAW WIRE
-                            if (clicked_pin->type != Pin::pinType::OUTPUT)
+                            if (clicked_pin->GetType() != Pin::pinType::OUTPUT)
                             {
                                 drawing_wire->ConnectPin(clicked_pin);
-                                clicked_pin->wires[clicked_pin->numConnections] = this->drawing_wire;
-                                clicked_pin->numConnections += 1;
+                                clicked_pin->SetWires(clicked_pin->GetNumOfConnections(), this->drawing_wire);
+                                clicked_pin->IncrementNumOfConnections();
                                 this->drawing_wire = nullptr;
                                 this->drawing = false;
                             }
@@ -169,8 +169,8 @@ void Simulator::pollEvents()
                         {
                             // START TO DRAW WIRE
                             Wire *wire = new Wire(clicked_pin->GetPosition(), clicked_pin);
-                            clicked_pin->wires[clicked_pin->numConnections] = wire;
-                            clicked_pin->numConnections += 1;
+                            clicked_pin->SetWires(clicked_pin->GetNumOfConnections(), wire);
+                            clicked_pin->IncrementNumOfConnections();
                             this->AddObject(wire);
                             this->drawing_wire = wire;
                             this->drawing = true;

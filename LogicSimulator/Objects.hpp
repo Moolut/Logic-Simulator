@@ -31,11 +31,11 @@ protected:
         O_CLK
     };
     ObjTypes objectType;
+    bool locked;       // Whether the object can move on screen or is fixed
+                   // You can use this flag for toolbar items which cannot move
+    sf::Sprite sprite; // SFML sprite for the object (if any)
 
 public:
-    bool locked;       // Whether the object can move on screen or is fixed
-                       // You can use this flag for toolbar items which cannot move
-    sf::Sprite sprite; // SFML sprite for the object (if any)
     friend class Simulator;
     Object()
     {
@@ -51,6 +51,11 @@ public:
     virtual Object *Clone() const = 0;
     virtual ObjTypes GetTypeName() const = 0;
     virtual void Simulate() = 0;
+    // Getter Setters
+    bool IsLocked() { return this->locked; };
+    void Lock() { this->locked = true; };
+    sf::Sprite GetSprite() { return this->sprite; };
+    void SetPosition(sf::Vector2f position) { this->sprite.setPosition(position); }
 };
 
 class Pin
@@ -78,10 +83,10 @@ protected:                                  // enum for pin state
     Pin *connectedTo[MAX_CONNECTION_TO_PIN]; // List of other pins this pin is connected to
     sf::Vector2f pos;                        // Screen position of the pin
     pinState state;                          // Logic state of the signal on this pin
-public:
     int numConnections;                      // Number of connections on this pin
     pinType type;                            // whether this pin is input or output
     Object* wires[MAX_CONNECTION_TO_PIN];    // Wires connected to this pin
+public:
     friend class LogicElement;
     Pin() {}
     ~Pin() {}
@@ -100,13 +105,21 @@ public:
             this->connectedTo[i] = nullptr;
             this->wires[i] = nullptr;
         };
-    }
+    } 
+    // Getter Setters
     void SetState(pinState state);
     pinState GetState();
     void SetConnection(Pin* pin) {
         this->connectedTo[0] = pin;
     };
     sf::Vector2f GetPosition() { return this->pos; };
+    pinType GetType() { return this->type; };
+    int GetNumOfConnections() { return this->numConnections; }
+    void SetNumOfConnections(int num) { this->numConnections = num; };
+    void DecrementNumOfConnections() { this->numConnections -= 1; };
+    void IncrementNumOfConnections() { this->numConnections += 1; };
+    Object* GetWires(int i) { return this->wires[i]; };
+    void SetWires(int i, Object* wire) { this->wires[i] = wire; };
 };
 
 class Wire : public Object

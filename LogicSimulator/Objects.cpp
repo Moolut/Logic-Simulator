@@ -45,12 +45,12 @@ Wire::~Wire()
 {
 
     this->pins[0]->SetState(Pin::pinState::HIGHZ);
-    this->pins[0]->numConnections -= 1;
+    this->pins[0]->DecrementNumOfConnections();
 
     if (this->pins[1])
     {
         this->pins[1]->SetState(Pin::pinState::HIGHZ);
-        this->pins[1]->numConnections -= 1;
+        this->pins[1]->DecrementNumOfConnections();
     }
 }
 
@@ -231,13 +231,13 @@ int AndGate::GetNumberOfWiresConnectedToPins()
     for (int i = 0; i < this->numPins; i++)
     {
 
-        for (int j = 0; j < this->pins[i].numConnections; j++)
+        for (int j = 0; j < this->pins[i].GetNumOfConnections(); j++)
         {
 
-            if (this->pins[i].wires[j])
+            if (this->pins[i].GetWires(j))
             {
 
-                this->pins[i].wires[j]->SetSelected(true);
+                this->pins[i].GetWires(j)->SetSelected(true);
 
                 count++;
             }
@@ -328,12 +328,12 @@ int OrGate::GetNumberOfWiresConnectedToPins()
     for (int i = 0; i < this->numPins; i++)
     {
 
-        for (int j = 0; j < this->pins[i].numConnections; j++)
+        for (int j = 0; j < this->pins[i].GetNumOfConnections(); j++)
         {
 
-            if (this->pins[i].wires[j])
+            if (this->pins[i].GetWires(j))
             {
-                this->pins[i].wires[j]->SetSelected(true);
+                this->pins[i].GetWires(j)->SetSelected(true);
                 count++;
             }
         }
@@ -425,13 +425,13 @@ int XorGate::GetNumberOfWiresConnectedToPins()
     for (int i = 0; i < this->numPins; i++)
     {
 
-        for (int j = 0; j < this->pins[i].numConnections; j++)
+        for (int j = 0; j < this->pins[i].GetNumOfConnections(); j++)
         {
 
-            if (this->pins[i].wires[j])
+            if (this->pins[i].GetWires(j))
             {
 
-                this->pins[i].wires[j]->SetSelected(true);
+                this->pins[i].GetWires(j)->SetSelected(true);
 
                 count++;
             }
@@ -514,13 +514,13 @@ int NotGate::GetNumberOfWiresConnectedToPins()
     for (int i = 0; i < this->numPins; i++)
     {
 
-        for (int j = 0; j < this->pins[i].numConnections; j++)
+        for (int j = 0; j < this->pins[i].GetNumOfConnections(); j++)
         {
 
-            if (this->pins[i].wires[j])
+            if (this->pins[i].GetWires(j))
             {
 
-                this->pins[i].wires[j]->SetSelected(true);
+                this->pins[i].GetWires(j)->SetSelected(true);
 
                 count++;
             }
@@ -630,13 +630,13 @@ int DFFGate::GetNumberOfWiresConnectedToPins()
     for (int i = 0; i < this->numPins; i++)
     {
 
-        for (int j = 0; j < this->pins[i].numConnections; j++)
+        for (int j = 0; j < this->pins[i].GetNumOfConnections(); j++)
         {
 
-            if (this->pins[i].wires[j])
+            if (this->pins[i].GetWires(j))
             {
 
-                this->pins[i].wires[j]->SetSelected(true);
+                this->pins[i].GetWires(j)->SetSelected(true);
 
                 count++;
             }
@@ -720,13 +720,13 @@ int Led::GetNumberOfWiresConnectedToPins()
     for (int i = 0; i < this->numPins; i++)
     {
 
-        for (int j = 0; j < this->pins[i].numConnections; j++)
+        for (int j = 0; j < this->pins[i].GetNumOfConnections(); j++)
         {
 
-            if (this->pins[i].wires[j])
+            if (this->pins[i].GetWires(j))
             {
 
-                this->pins[i].wires[j]->SetSelected(true);
+                this->pins[i].GetWires(j)->SetSelected(true);
 
                 count++;
             }
@@ -796,13 +796,13 @@ int VDD::GetNumberOfWiresConnectedToPins()
     for (int i = 0; i < this->numPins; i++)
     {
 
-        for (int j = 0; j < this->pins[i].numConnections; j++)
+        for (int j = 0; j < this->pins[i].GetNumOfConnections(); j++)
         {
 
-            if (this->pins[i].wires[j])
+            if (this->pins[i].GetWires(j))
             {
 
-                this->pins[i].wires[j]->SetSelected(true);
+                this->pins[i].GetWires(j)->SetSelected(true);
 
                 count++;
             }
@@ -872,13 +872,13 @@ int GND::GetNumberOfWiresConnectedToPins()
     for (int i = 0; i < this->numPins; i++)
     {
 
-        for (int j = 0; j < this->pins[i].numConnections; j++)
+        for (int j = 0; j < this->pins[i].GetNumOfConnections(); j++)
         {
 
-            if (this->pins[i].wires[j])
+            if (this->pins[i].GetWires(j))
             {
 
-                this->pins[i].wires[j]->SetSelected(true);
+                this->pins[i].GetWires(j)->SetSelected(true);
 
                 count++;
             }
@@ -954,13 +954,13 @@ int CLK::GetNumberOfWiresConnectedToPins()
     for (int i = 0; i < this->numPins; i++)
     {
 
-        for (int j = 0; j < this->pins[i].numConnections; j++)
+        for (int j = 0; j < this->pins[i].GetNumOfConnections(); j++)
         {
 
-            if (this->pins[i].wires[j])
+            if (this->pins[i].GetWires(j))
             {
 
-                this->pins[i].wires[j]->SetSelected(true);
+                this->pins[i].GetWires(j)->SetSelected(true);
 
                 count++;
             }

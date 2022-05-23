@@ -1,0 +1,130 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1" MembersFormat="FullSignature">
+  <Class Name="Object">
+    <Position X="8" Y="0.5" Width="1.5" />
+    <NestedTypes>
+      <Enum Name="Object::ObjTypes" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Objects.hpp</NewMemberFileName>
+        </TypeIdentifier>
+      </Enum>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>AAEAAACAAUAAIAAgAAABAAAAABAAAAAMAIAAAgIAABA=</HashCode>
+      <FileName>Objects.hpp</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Pin">
+    <Position X="17.75" Y="0.5" Width="1.5" />
+    <NestedTypes>
+      <Enum Name="Pin::pinType" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Objects.hpp</NewMemberFileName>
+        </TypeIdentifier>
+      </Enum>
+      <Enum Name="Pin::pinState" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Objects.hpp</NewMemberFileName>
+        </TypeIdentifier>
+      </Enum>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>AAAABkAAACAAAAAAAAACAIAAAAARQACEAAABAAABAEA=</HashCode>
+      <FileName>Objects.hpp</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Wire">
+    <Position X="4.25" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAEAAAAAAgAAQCAAAAAJAAQAABAAIAAAAAwIAAEAABA=</HashCode>
+      <FileName>Objects.hpp</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="LogicElement">
+    <Position X="13.75" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAEAAAAAAAAAICAYAAAAAAQABAAgAAAAIAAAAAAACgA=</HashCode>
+      <FileName>Objects.hpp</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="AndGate">
+    <Position X="3" Y="7" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAIAAABAAAAAAAAAAAAAAAAAAABghA=</HashCode>
+      <FileName>Objects.hpp</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="OrGate">
+    <Position X="9.75" Y="7" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAQAAAAIAAABAAAAAAAAAAAAAAABAAAAAhA=</HashCode>
+      <FileName>Objects.hpp</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="XorGate">
+    <Position X="14.25" Y="7" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAABAAIAAABAAAAAAAAAAAAAAEAAAAAAhA=</HashCode>
+      <FileName>Objects.hpp</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="NotGate">
+    <Position X="18.75" Y="7" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAQAIAAABAAAAAAAAAAAAAAAAAAEAAhA=</HashCode>
+      <FileName>Objects.hpp</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DFFGate">
+    <Position X="5.25" Y="7" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAIAAABAAABAAAAAAAAACAAAAAAAhA=</HashCode>
+      <FileName>Objects.hpp</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Led">
+    <Position X="12" Y="7" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAIAIAAABAAAAAAAAABAAAAAAAAAAAhA=</HashCode>
+      <FileName>Objects.hpp</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="VDD">
+    <Position X="16.5" Y="7" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAQBIAAABAAAAAAAAAAAAAAAAAAAAAhA=</HashCode>
+      <FileName>Objects.hpp</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="GND">
+    <Position X="21" Y="7" Width="1.5" />
+    <InheritanceLine Type="LogicElement" ManuallyRouted="true">
+      <Path>
+        <Point X="14.5" Y="5.415" />
+        <Point X="14.5" Y="6.618" />
+        <Point X="22.875" Y="6.618" />
+        <Point X="22.875" Y="8.097" />
+        <Point X="22.5" Y="8.097" />
+      </Path>
+    </InheritanceLine>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAIAAABAAAAAAIAAgAAAAAAAAAAAhA=</HashCode>
+      <FileName>Objects.hpp</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CLK">
+    <Position X="7.5" Y="7" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAgAAAAhAAAAAAAIBAABAAAAAAAAAAAAAAAEAAAAAhA=</HashCode>
+      <FileName>Objects.hpp</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Simulator">
+    <Position X="19.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAACAEgAAAAABCECAAAQQAFQAIEAIIgAAgAAA0AAA=</HashCode>
+      <FileName>Simulator.hpp</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>
