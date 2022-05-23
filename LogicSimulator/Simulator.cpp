@@ -10,21 +10,31 @@
 
 using namespace std;
 
+// According to our pc's windows size define the width & height of the app windor
 #define WIN_H GetSystemMetrics(SM_CYSCREEN) * 0.9;
 #define WIN_W GetSystemMetrics(SM_CXSCREEN) * 0.75;
 
+
+// Simulator constructor
+// We seperated the constructor into 2 function 
+//                                   -> initVariables
+//                                   -> initWindow
 Simulator::Simulator()
 {
     this->initVariables();
     this->initWindow();
 };
 
+// Simulator destructor
+// Deletes the pointers of the simulator obj
 Simulator::~Simulator()
 {
     delete this->window;
     delete this->objects;
 };
 
+// Initialize the attributes of the simulator obj
+// The pointers are set to "nullptr" at initial
 void Simulator::initVariables()
 {
     this->window = nullptr;
@@ -33,6 +43,8 @@ void Simulator::initVariables()
     this->drawing_wire = nullptr;
 };
 
+// Initialize our app window
+// It determines the width, height, the title of the app
 void Simulator::initWindow()
 {
 
@@ -42,77 +54,135 @@ void Simulator::initWindow()
     this->window = new sf::RenderWindow(this->videoMode, "Logic Simulator", sf::Style::Titlebar | sf::Style::Close);
 };
 
+// In this function we handle our mouse & keyboard click events
+
+// MOUSE LEFT CLICK     -> clicking = true | To detect click on obj, pin, wire 
+//                      -> clicked  = true | To detect are we holding & dragging obj
+//                                       -> If we only click       : Sets the obj to selected
+//                                       -> If we are holding it   : Drags the clicked object
+//                                                                              
+// MOUSE RIGHT CLICK    -> cancel   = true  
+//                                       -> When clicked cancels the wire drawing process
+// DELETE BUTTON        -> deleteObj = true 
+//                                       -> If pressed deletes the selected obj
+
+// ESCAPE BUTTON        -> Closes the window
+
+// MOUSE MOVSE          -> moving = true
+
 void Simulator::pollEvents()
-{
+{   
 
     bool moving = false, clicking = false, dragging = false, cancel = false, deleteObj = false;
 
-    sf::Vector2f start_pos;
+
+    // To save the mouse position at a certain event
     sf::Vector2i mousePos;
 
+    // Loop through the poll events of SFML window
     while (this->window->pollEvent(this->event))
     {
         deleteObj = false;
+
+        // Switch through the event type that occurs
         switch (this->event.type)
         {
         case sf::Event::Closed:
+            // Close the window
             this->window->close();
             break;
         case sf::Event::KeyPressed:
             if (this->event.key.code == sf::Keyboard::Escape)
+                // Close the window
                 this->window->close();
             else if (this->event.key.code == sf::Keyboard::Delete)
+                // Set the deleteObj to true thus we can start the remove object process
                 deleteObj = true;
             break;
         case sf::Event::MouseMoved:
+            // Get the mouse position into the mousePos variable
             mousePos = sf::Vector2i(event.mouseMove.x, event.mouseMove.y);
+            // Set the moving variable to true
             moving = true;
             break;
         case sf::Event::MouseButtonPressed:
             if (event.mouseButton.button == sf::Mouse::Left)
             {
+                // Set the clicked (Simulator's attribute) & clicking (poll event variable) to true
+
                 this->clicked = clicking = true;
+                // Get the mouse position
                 mousePos = sf::Vector2i(event.mouseButton.x, event.mouseButton.y);
             }
             else if (event.mouseButton.button == sf::Mouse::Right)
             {
+                // Set the cancel variable to true. By doing that we cancel the drawing wire process
                 cancel = true;
+                // Get the mouse position
                 mousePos = sf::Vector2i(event.mouseButton.x, event.mouseButton.y);
             }
             break;
         case sf::Event::MouseButtonReleased:
             if (event.mouseButton.button == sf::Mouse::Left)
             {
+                // Set the clicked (Simulator's attribute) & clicking (poll event variable) to false
                 this->clicked = clicking = false;
             }
             if (event.mouseButton.button == sf::Mouse::Right)
             {
+                // Set the cancel to false
                 cancel = false;
             }
+            // Get the mouse position
             mousePos = sf::Vector2i(event.mouseButton.x, event.mouseButton.y);
             break;
         default:
             break;
         }
-        // "close requested" event: we close the window
-        if (this->event.type == sf::Event::Closed)
-            this->window->close();
+
     }
+
+    //  --------Determine the dragging & holding logic--------
+
+    // Clicked -> determines did we clicked on to the left mouse button
+    // focus   -> determines did we clickec on to any object
+
+    // If both are true that means we are holding an object
+
+    // And if we are holding object while moving our mouse that means we are dragging it
+
     this->holding = clicked && (this->focus != nullptr);
     dragging = (this->holding && moving);
 
+
+    // In this if check we are control the wire drawing process
+    // If cancel is true that means we want to abort the process
     if (cancel)
     {
+        // Drawing -> determines are we drawing a wire or not
+        // drawing_wire -> if it is NOT NULL that means we started to draw a wire and we a pointer that 
+        //                 points to it
+
+        // If the drawing_wire is not null we call the isComplete function of the wire
+        // Which gives us information about if we finished drawing the wire or not
+
         if (drawing && drawing_wire != nullptr && !drawing_wire->isComplete())
         {
+            // We set the wire to be selected and we call the removeObject function
+            // In the removeObject function we look for the selected obj and delete it
+
             this->drawing_wire->selected = true;
             this->RemoveObject();
 
+            // After deleted the wire we set out drawing_wire pointer to null & drawing to false
             this->drawing_wire = nullptr;
             this->drawing = false;
         }
     }
 
+    // We check that did we clicked on DELETE button or not 
+    // If yes that means we want to delete an object
+    // So we are calling the RemoveObject function
     if (deleteObj)
     {
         this->RemoveObject();

@@ -5,20 +5,28 @@
 
 using namespace std;
 
+
+// InitToolbar function initialize the toolbar gates 
+// It sets their position to the left side of the screen
+// And locks them
 void InitToolbar(Simulator *sim);
 
 int main()
 {
-    // Initialize Simulator
+    // Create an instance of simulator class
     Simulator simulator;
+
+    // Call the InitToolbar function by giving the address of simulator object
     InitToolbar(&simulator);
 
-    // run the program as long as the window is open
+    // Call the simulator's isRunning method which indicates is the window open or not
+    
     while (simulator.isRunning())
     {
-        // check all the window's events that were triggered since the last iteration of the loop
+        // Call the update function of the simulator object in loop
         simulator.update();
 
+        // Call the render function of the simulator object
         simulator.render();
     }
     return 0;
@@ -26,6 +34,8 @@ int main()
 
 void InitToolbar(Simulator *sim)
 {
+
+    // Create pointer intsance of the toolbar gates
     AndGate *_toolbar_and = new AndGate();
     OrGate *_toolbar_or = new OrGate();
     XorGate *_toolbar_xor = new XorGate();
@@ -37,6 +47,8 @@ void InitToolbar(Simulator *sim)
     GND *_toolbar_gnd = new GND();
     CLK *_toolbar_clk = new CLK();
 
+
+    // Set the toolbar objects positions & and lock them
     _toolbar_and->SetPosition(sf::Vector2f(20.f, 20.f));
     _toolbar_and->Lock();
     _toolbar_or->SetPosition(sf::Vector2f(20.f, 120.f));
@@ -56,6 +68,8 @@ void InitToolbar(Simulator *sim)
     _toolbar_clk->SetPosition(sf::Vector2f(20.f, 820.f));
     _toolbar_clk->Lock();
 
+
+    // Add the toolbar objects to the Simulator class objects list
     sim->AddObject(_toolbar_clk);
     sim->AddObject(_toolbar_dff);
     sim->AddObject(_toolbar_gnd);
