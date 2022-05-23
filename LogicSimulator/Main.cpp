@@ -35,7 +35,7 @@ int main()
 void InitToolbar(Simulator *sim)
 {
 
-    // Create pointer intsance of the toolbar gates
+    // Create pointer instances of the toolbar gates
     AndGate *_toolbar_and = new AndGate();
     OrGate *_toolbar_or = new OrGate();
     XorGate *_toolbar_xor = new XorGate();

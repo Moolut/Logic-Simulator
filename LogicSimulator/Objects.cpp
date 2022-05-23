@@ -6,6 +6,11 @@
 #include <chrono> //For clock
 #include <thread> //
 
+
+//-----------------------------------------------OBJECT CLASS-----------------------------------------------
+// Object copy constructor
+// Copies the values of the object to be copied to the copy object
+
 Object::Object(const Object &old_obj)
 {
     this->next = old_obj.next;
@@ -25,11 +30,13 @@ Object::~Object()
     cout << "Object Deconstructor" << endl;
 }
 
-void Object::SetSelected(bool isSelected)
-{
-    this->selected = isSelected;
-};
 
+
+
+//-----------------------------------------------WIRE CLASS-----------------------------------------------
+
+// Gets the start point and sets it to the vertex line array
+// Gets the start pin and sets it to the pin array
 Wire::Wire(sf::Vector2f start_point, Pin *start_pin)
 {
     this->objectType = O_WIRE;
@@ -41,6 +48,20 @@ Wire::Wire(sf::Vector2f start_point, Pin *start_pin)
     this->pins[0] = start_pin;
 };
 
+// GETTERS
+sf::Vertex* Wire::GetLines()
+{
+    return this->line;
+}
+
+Object::ObjTypes Wire::GetTypeName() const
+{
+    return this->objectType;
+};
+
+// Deconstructor
+// Sets the pins' state to HIGHZ
+// Decrements the number of connection of the pin
 Wire::~Wire()
 {
 
@@ -54,12 +75,15 @@ Wire::~Wire()
     }
 }
 
+// Updates the end point of the wire by getting the point location
 void Wire::UpdateEndPoint(sf::Vector2f end_point)
 {
     this->line[1].position = end_point;
     this->line[1].color = sf::Color::Yellow;
 }
 
+// Connects both pin to each other
+// Sets the complete to true
 void Wire::ConnectPin(Pin *end_pin)
 {
     this->line[1].position = end_pin->GetPosition();
@@ -72,16 +96,18 @@ void Wire::ConnectPin(Pin *end_pin)
     this->pins[0]->SetConnection(this->pins[1]);
 };
 
+// Updates the start & end point positions if it is completed
 void Wire::UpdatePosition()
 {
     if (complete)
     {
         this->line[0].position = this->pins[0]->GetPosition();
         this->line[1].position = this->pins[1]->GetPosition();
-        // cout << this->pins[1] << endl;
+        
     }
 };
 
+// Takes the start point state and sets it to end point
 void Wire::Simulate()
 {
     if (complete)
@@ -90,6 +116,9 @@ void Wire::Simulate()
     }
 };
 
+// Takes x & y position of the mouse
+// Checkes whether the mouse position's nearest distance to the wire is less or equal to 10
+// And returns boolean value
 bool Wire::pDistance(float mouse_x, float mouse_y)
 {
 
@@ -136,16 +165,126 @@ bool Wire::pDistance(float mouse_x, float mouse_y)
     return sqrt(dx * dx + dy * dy) <= 10;
 }
 
-sf::Vertex *Wire::GetLines()
-{
-    return this->line;
-}
 
-Object::ObjTypes Wire::GetTypeName() const
+//-----------------------------------------------LogicElement CLASS-----------------------------------------------
+
+
+// GETTERS
+Object::ObjTypes LogicElement::GetTypeName() const
 {
     return this->objectType;
 };
 
+Pin* LogicElement::GetPins()
+{
+
+    return this->pins;
+};
+
+int LogicElement::GetNumOfPins()
+{
+    return this->numPins;
+};
+
+
+// According to our object type we are updating the object's pins relative to it's sprite location
+void LogicElement::UpdatePosition()
+{
+    if (objectType == O_AND || objectType == O_OR || objectType == O_XOR)
+    {
+        this->pins[0].pos = sf::Vector2f(this->sprite.getPosition().x + 1.f, this->sprite.getPosition().y + 10.f);
+        this->pins[1].pos = sf::Vector2f(this->sprite.getPosition().x + 1.f, this->sprite.getPosition().y + 40.f);
+        this->pins[2].pos = sf::Vector2f(this->sprite.getPosition().x + 90.f, this->sprite.getPosition().y + 25.f);
+    }
+    else if (objectType == O_DFF)
+    {
+        this->pins[0].pos = sf::Vector2f(this->sprite.getPosition().x + 1.f, this->sprite.getPosition().y + 15.f);
+        this->pins[1].pos = sf::Vector2f(this->sprite.getPosition().x + 1.f, this->sprite.getPosition().y + 35.f);
+        this->pins[2].pos = sf::Vector2f(this->sprite.getPosition().x + 90.f, this->sprite.getPosition().y + 15.f);
+        this->pins[3].pos = sf::Vector2f(this->sprite.getPosition().x + 90.f, this->sprite.getPosition().y + 55.f);
+    }
+    else if (objectType == O_NOT)
+    {
+        this->pins[0].pos = sf::Vector2f(this->sprite.getPosition().x + 1.f, this->sprite.getPosition().y + 25.f);
+        this->pins[1].pos = sf::Vector2f(this->sprite.getPosition().x + 90.f, this->sprite.getPosition().y + 25.f);
+    }
+    else if (objectType == O_LED)
+    {
+        this->pins[0].pos = sf::Vector2f(this->sprite.getPosition().x + 8.f, this->sprite.getPosition().y + 68.f);
+        this->pins[1].pos = sf::Vector2f(this->sprite.getPosition().x + 25.f, this->sprite.getPosition().y + 68.f);
+    }
+    else if (objectType == O_VDD)
+    {
+        this->pins[0].pos = sf::Vector2f(this->sprite.getPosition().x + 25.f, this->sprite.getPosition().y + 50.f);
+    }
+    else if (objectType == O_GND)
+    {
+        this->pins[0].pos = sf::Vector2f(this->sprite.getPosition().x + 20.f, this->sprite.getPosition().y + 1.f);
+    }
+    else if (objectType == O_CLK)
+    {
+        this->pins[0].pos = sf::Vector2f(this->sprite.getPosition().x + 70.f, this->sprite.getPosition().y + 25.f);
+    }
+};
+
+
+// For better visulization & debugging, we added sprite & texture to pins
+// DrawPins draws the pins according to it's state
+// If state is  HIGH    -> GREEN
+//              LOW     -> RED
+//              HIGHZ   -> WhITE
+sf::Sprite LogicElement::DrawPins(int i)
+{
+    sf::Sprite sprite;
+    sf::Texture texture;
+
+    if (!texture.create(10, 10))
+        exit(0);
+
+    sprite.setTexture(texture);
+    sprite.setPosition(pins[i].GetPosition());
+
+    if (pins[i].GetState() == Pin::pinState::HIGH)
+    {
+        sprite.setColor(sf::Color::Green);
+    }
+    else if (pins[i].GetState() == Pin::pinState::LOW)
+    {
+        sprite.setColor(sf::Color::Red);
+    }
+    else
+    {
+        sprite.setColor(sf::Color::White);
+    }
+
+    return sprite;
+};
+
+
+//-----------------------------------------------Pin CLASS-----------------------------------------------
+
+
+// SETTERS - GETTERS
+void Pin::SetState(pinState state) {
+    this->state = state;
+};
+
+Pin::pinState Pin::GetState() {
+    return this->state;
+};
+
+
+
+
+//-----------------------------------------------AndGate CLASS-----------------------------------------------
+
+// !!!!!!!!!!!! (We added comments only to AndGate & Clock objects because the other objects has the same code) !!!!!!!!!!!!
+
+// The constructors on each Logic Element does the same operation
+// - Sets the # of pins
+// - Sets the object type
+// - Sets the pins 
+// - Sets the texture & sprite
 AndGate::AndGate()
 {
     cout << "AND GATE CONSTRUCTOR " << endl;
@@ -176,13 +315,19 @@ AndGate::AndGate()
     this->sprite.setTexture(this->textures[0]);
 };
 
+
+// Deconstructor
 AndGate::~AndGate()
 {
 
     cout << "AND GATE DECONSTRUCTOR" << endl;
 };
 
+// In the clone function we are returning a new instance of the object that is cloned 
 Object *AndGate::Clone() const { return new AndGate(*this); };
+
+// Simulate functions checks the INPUT pins of the object and 
+// It determines the OUTPUT according to the working principle of each object.
 
 void AndGate::Simulate()
 {
@@ -200,6 +345,9 @@ void AndGate::Simulate()
     }
 };
 
+// Gets the mouse's x & y position and loop through it's pins
+// Thus, we can check on which pin did we clicked
+// Returns the clicked_pin pointer which points the clicked pin
 Pin *AndGate::GetClickedPin(float mouse_x_pos, float mouse_y_pos)
 {
 
@@ -223,6 +371,12 @@ Pin *AndGate::GetClickedPin(float mouse_x_pos, float mouse_y_pos)
     return clicked_pin;
 }
 
+// Gets the number of wires that is connect to the object
+// We are looping throug all of the pins & pins' wires
+// We call this function when the object will be deleted
+// In this function we also set the wires to selected
+// Thus in RemoveObject function which is in Simulator Class can find the wires by looking their selected attribute
+// And it will delete the wire of the object
 int AndGate::GetNumberOfWiresConnectedToPins()
 {
 
@@ -246,6 +400,10 @@ int AndGate::GetNumberOfWiresConnectedToPins()
 
     return count;
 }
+
+
+
+//-----------------------------------------------OrGate CLASS-----------------------------------------------
 
 OrGate::OrGate()
 {
@@ -341,6 +499,9 @@ int OrGate::GetNumberOfWiresConnectedToPins()
 
     return count;
 }
+
+
+//-----------------------------------------------XorGate CLASS-----------------------------------------------
 
 XorGate::XorGate()
 {
@@ -441,6 +602,9 @@ int XorGate::GetNumberOfWiresConnectedToPins()
     return count;
 }
 
+
+//-----------------------------------------------NotGate CLASS-----------------------------------------------
+
 NotGate::NotGate()
 {
 
@@ -529,6 +693,9 @@ int NotGate::GetNumberOfWiresConnectedToPins()
 
     return count;
 }
+
+
+//-----------------------------------------------DFF CLASS-----------------------------------------------
 
 DFFGate::DFFGate()
 {
@@ -646,6 +813,12 @@ int DFFGate::GetNumberOfWiresConnectedToPins()
     return count;
 }
 
+
+//-----------------------------------------------Led CLASS-----------------------------------------------
+
+// Unlike the other logic elements it has 2 types of texture
+//                                              - one for led is on
+//                                              - one for led is off
 Led::Led()
 {
 
@@ -736,6 +909,9 @@ int Led::GetNumberOfWiresConnectedToPins()
     return count;
 }
 
+
+//-----------------------------------------------VDD CLASS-----------------------------------------------
+
 VDD::VDD()
 {
 
@@ -811,6 +987,9 @@ int VDD::GetNumberOfWiresConnectedToPins()
 
     return count;
 }
+
+
+//-----------------------------------------------GND CLASS-----------------------------------------------
 
 GND::GND()
 {
@@ -888,6 +1067,10 @@ int GND::GetNumberOfWiresConnectedToPins()
     return count;
 }
 
+
+//-----------------------------------------------CLK CLASS-----------------------------------------------
+
+
 CLK::CLK()
 {
 
@@ -912,6 +1095,15 @@ CLK::~CLK(){};
 
 Object *CLK::Clone() const { return new CLK(*this); };
 
+
+
+// Unlike the other logic elements the CLK does work differently
+
+// From the SFML library we compare the m_Clock's time with our delay
+// If the clock reaches to delay we increase counter value by 1
+// And we are resetting the clock
+// When the counter is even we set the Clock's pin to LOW
+//                     odd we set the Clock's pin to HIGH
 void CLK::Simulate()
 {
 
@@ -970,92 +1162,3 @@ int CLK::GetNumberOfWiresConnectedToPins()
     return count;
 }
 
-Object::ObjTypes LogicElement::GetTypeName() const
-{
-    return this->objectType;
-};
-
-Pin *LogicElement::GetPins()
-{
-
-    return this->pins;
-};
-
-int LogicElement::GetNumOfPins()
-{
-    return this->numPins;
-};
-
-void LogicElement::UpdatePosition()
-{
-    if (objectType == O_AND || objectType == O_OR || objectType == O_XOR)
-    {
-        this->pins[0].pos = sf::Vector2f(this->sprite.getPosition().x + 1.f, this->sprite.getPosition().y + 10.f);
-        this->pins[1].pos = sf::Vector2f(this->sprite.getPosition().x + 1.f, this->sprite.getPosition().y + 40.f);
-        this->pins[2].pos = sf::Vector2f(this->sprite.getPosition().x + 90.f, this->sprite.getPosition().y + 25.f);
-    }
-    else if (objectType == O_DFF)
-    {
-        this->pins[0].pos = sf::Vector2f(this->sprite.getPosition().x + 1.f, this->sprite.getPosition().y + 15.f);
-        this->pins[1].pos = sf::Vector2f(this->sprite.getPosition().x + 1.f, this->sprite.getPosition().y + 35.f);
-        this->pins[2].pos = sf::Vector2f(this->sprite.getPosition().x + 90.f, this->sprite.getPosition().y + 15.f);
-        this->pins[3].pos = sf::Vector2f(this->sprite.getPosition().x + 90.f, this->sprite.getPosition().y + 55.f);
-    }
-    else if (objectType == O_NOT)
-    {
-        this->pins[0].pos = sf::Vector2f(this->sprite.getPosition().x + 1.f, this->sprite.getPosition().y + 25.f);
-        this->pins[1].pos = sf::Vector2f(this->sprite.getPosition().x + 90.f, this->sprite.getPosition().y + 25.f);
-    }
-    else if (objectType == O_LED)
-    {
-        this->pins[0].pos = sf::Vector2f(this->sprite.getPosition().x + 8.f, this->sprite.getPosition().y + 68.f);
-        this->pins[1].pos = sf::Vector2f(this->sprite.getPosition().x + 25.f, this->sprite.getPosition().y + 68.f);
-    }
-    else if (objectType == O_VDD)
-    {
-        this->pins[0].pos = sf::Vector2f(this->sprite.getPosition().x + 25.f, this->sprite.getPosition().y + 50.f);
-    }
-    else if (objectType == O_GND)
-    {
-        this->pins[0].pos = sf::Vector2f(this->sprite.getPosition().x + 20.f, this->sprite.getPosition().y + 1.f);
-    }
-    else if (objectType == O_CLK)
-    {
-        this->pins[0].pos = sf::Vector2f(this->sprite.getPosition().x + 70.f, this->sprite.getPosition().y + 25.f);
-    }
-};
-
-sf::Sprite LogicElement::DrawPins(int i)
-{
-    sf::Sprite sprite;
-    sf::Texture texture;
-
-    if (!texture.create(10, 10))
-        exit(0);
-
-    sprite.setTexture(texture);
-    sprite.setPosition(pins[i].GetPosition());
-
-    if (pins[i].GetState() == Pin::pinState::HIGH)
-    {
-        sprite.setColor(sf::Color::Green);
-    }
-    else if (pins[i].GetState() == Pin::pinState::LOW)
-    {
-        sprite.setColor(sf::Color::Red);
-    }
-    else
-    {
-        sprite.setColor(sf::Color::White);
-    }
-
-    return sprite;
-};
-
-void Pin::SetState(pinState state) {
-    this->state = state;
-};
-
-Pin::pinState Pin::GetState() {
-    return this->state;
-};
